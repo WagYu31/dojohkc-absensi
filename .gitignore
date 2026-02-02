@@ -1,0 +1,25 @@
+# Ignore production folder
+kode production dojo/
+
+# Ignore sensitive files
+sw-library/sw-config.php
+**/sw-config.php
+
+# Database files
+*.sql
+
+# Logs and temp files
+*.log
+*.zip
+*.rar
+
+# System files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Credentials and secrets
+**/credentials*
+**/secret*
+**/*password*
+**/*token*
