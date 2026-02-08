@@ -28,6 +28,30 @@ echo'
           </div>
         </div>
         <div class="box-body">
+          <div class="row" style="margin-bottom:15px;">
+            <div class="col-md-3">
+              <select id="filter-bulan" class="form-control">'; 
+                $bulan_list = array(1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember');
+                $bulan_now = date('n');
+                foreach($bulan_list as $k => $v){
+                  $sel = ($k == $bulan_now) ? 'selected' : '';
+                  echo '<option value="'.str_pad($k,2,'0',STR_PAD_LEFT).'" '.$sel.'>'.$v.'</option>';
+                }
+              echo'</select>
+            </div>
+            <div class="col-md-3">
+              <select id="filter-tahun" class="form-control">';
+                $thn_now = date('Y');
+                for($t = $thn_now - 2; $t <= $thn_now + 1; $t++){
+                  $sel = ($t == $thn_now) ? 'selected' : '';
+                  echo '<option value="'.$t.'" '.$sel.'>'.$t.'</option>';
+                }
+              echo'</select>
+            </div>
+            <div class="col-md-3">
+              <button type="button" class="btn btn-primary btn-filter-absensi"><i class="fa fa-search"></i> Filter</button>
+            </div>
+          </div>
           <div class="table-responsive">
             <table id="sw-datatable" class="table table-bordered">
             <thead>

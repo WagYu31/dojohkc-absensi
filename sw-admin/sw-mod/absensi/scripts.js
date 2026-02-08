@@ -1,56 +1,62 @@
-$(document).ready(function() {
-$('#swdatatable').dataTable({
-    "iDisplayLength":31,
-    "aLengthMenu": [[31, 50, 100, -1], [31, 50, 100, "All"]],
-});
+$(document).ready(function () {
+    $('#swdatatable').dataTable({
+        "iDisplayLength": 31,
+        "aLengthMenu": [[31, 50, 100, -1], [31, 50, 100, "All"]],
+    });
 
-function loading(){
-    $(".loading").show();
-    $(".loading").delay(1500).fadeOut(500);
-}
+    function loading() {
+        $(".loading").show();
+        $(".loading").delay(1500).fadeOut(500);
+    }
 
 
-function loadData_Pegawai() {
-    $('#sw-datatable').dataTable( {
+    function loadData_Pegawai() {
+        var bulan = $('#filter-bulan').val() || '';
+        var tahun = $('#filter-tahun').val() || '';
+        $('#sw-datatable').dataTable({
             "bProcessing": true,
             "bServerSide": false,
             "bAutoWidth": true,
             "bSort": false,
             "bStateSave": true,
-            "bDestroy" : true,
-            "ssSorting" : [[0, 'desc']],
+            "bDestroy": true,
+            "ssSorting": [[0, 'desc']],
             "iDisplayLength": 25,
             "aLengthMenu": [
                 [25, 30, 50, -1],
                 [25, 30, 50, "All"]
             ],
-            "sAjaxSource": "sw-mod/absensi/sw-datatable.php",
+            "sAjaxSource": "sw-mod/absensi/sw-datatable.php?bulan=" + bulan + "&tahun=" + tahun,
             //"aoColumns": [null,null,null,null,null,null,null,null,null],
+        });
+    }
+
+    loadData_Pegawai();
+
+    $('.btn-filter-absensi').click(function () {
+        loadData_Pegawai();
     });
-}
-
-loadData_Pegawai();
 
 
-loadData();
-function loadData() {
-    var id = $('.id').val();
-    $.ajax({
-        url: 'sw-mod/absensi/proses.php?action=absensi&id='+id+'',
-        type: 'POST',
-        success: function(data) {
-          $('.loaddata').html(data);
-        }
-    });
-}
-
-$('.btn-clear').click(function (e) {
     loadData();
-    $('.month').val('');
-    $('.year').val('');
-});
+    function loadData() {
+        var id = $('.id').val();
+        $.ajax({
+            url: 'sw-mod/absensi/proses.php?action=absensi&id=' + id + '',
+            type: 'POST',
+            success: function (data) {
+                $('.loaddata').html(data);
+            }
+        });
+    }
 
-$('.btn-sortir').click(function (e) {
+    $('.btn-clear').click(function (e) {
+        loadData();
+        $('.month').val('');
+        $('.year').val('');
+    });
+
+    $('.btn-sortir').click(function (e) {
         var month_d = new Array();
         month_d[0] = "January";
         month_d[1] = "February";
@@ -65,75 +71,75 @@ $('.btn-sortir').click(function (e) {
         month_d[10] = "November";
         month_d[11] = "December";
 
-        var id    = $('.id').val();
+        var id = $('.id').val();
         var month = $('.month').val();
-        var year  = $('.year').val();
+        var year = $('.year').val();
 
-        var d     = new Date(month);
-        var n     = month_d[d.getMonth()];
+        var d = new Date(month);
+        var n = month_d[d.getMonth()];
         //document.getElementById("demo").innerHTML = n;
         $('.result-month').html(n);
 
-       $.ajax({
-          url: 'sw-mod/absensi/proses.php?action=absensi&id='+id+'',
-          method:"POST",
-          data:{month:month,year:year},
-          dataType:"text",
-          cache: false,
-          async: false,
-            beforeSend: function () { 
-             //loading();
+        $.ajax({
+            url: 'sw-mod/absensi/proses.php?action=absensi&id=' + id + '',
+            method: "POST",
+            data: { month: month, year: year },
+            dataType: "text",
+            cache: false,
+            async: false,
+            beforeSend: function () {
+                //loading();
             },
             success: function (data) {
-               $('.loaddata').html(data);
+                $('.loaddata').html(data);
             },
-        complete: function () {
-            //$(".loading").hide();
-        },
+            complete: function () {
+                //$(".loading").hide();
+            },
+        });
     });
-});
 
-(function() {
-    var $gallery = new SimpleLightbox(".picture a", {});
-})();
+    (function () {
+        var $gallery = new SimpleLightbox(".picture a", {});
+    })();
 
 
     $('.btn-print').click(function (e) {
-            var id    = $('.id').val();
-            var month = $('.month').val();
-            var year  = $('.year').val();
-            var type  = $(this).attr("data-id");
-            var url = "./absensi/print?action=print&id="+id+"&from="+month+"&to="+year+"&tipe="+type+"";
-            window.open(url, '_blank');
+        var id = $('.id').val();
+        var month = $('.month').val();
+        var year = $('.year').val();
+        var type = $(this).attr("data-id");
+        var url = "./absensi/print?action=print&id=" + id + "&from=" + month + "&to=" + year + "&tipe=" + type + "";
+        window.open(url, '_blank');
     });
 
     $('.btn-print-all').click(function (e) {
-            var pegawai = $('.pegawai').val();
-            var month = $('.month').val();
-            var year  = $('.year').val();
-            var type  = $('.type').val();
-            if(type=='excel'){
-                var url = "./absensi/print?action=all-print&pegawai="+pegawai+"&from="+month+"&to="+year+""; 
-            }
-            if(type=='print'){
-                var url = "./absensi/print?action=all-print&pegawai="+pegawai+"&from="+month+"&to="+year+"&print=print"; 
-            }
+        var pegawai = $('.pegawai').val();
+        var month = $('.month').val();
+        var year = $('.year').val();
+        var type = $('.type').val();
+        if (type == 'excel') {
+            var url = "./absensi/print?action=all-print&pegawai=" + pegawai + "&from=" + month + "&to=" + year + "";
+        }
+        if (type == 'print') {
+            var url = "./absensi/print?action=all-print&pegawai=" + pegawai + "&from=" + month + "&to=" + year + "&print=print";
+        }
 
-            window.open(url, '_blank');
+        window.open(url, '_blank');
     });
 
 });
 
 
-$(document).on('click', '.btn-modal', function(){
+$(document).on('click', '.btn-modal', function () {
     $('#modal-location').modal();
-    var latitude  = $(this).attr("data-latitude");
+    var latitude = $(this).attr("data-latitude");
     var longitude = $(this).attr("data-longitude");
     var name = $('.employees_name').html();
     $(".modal-title-name").html(name);
-    document.getElementById("iframe-map").innerHTML ='<iframe src="sw-mod/absensi/map.php?latitude='+latitude+'&longitude='+longitude+'&name='+name+'" frameborder="0" width="100%" height="400px" marginwidth="0" marginheight="0" scrolling="no">';
+    document.getElementById("iframe-map").innerHTML = '<iframe src="sw-mod/absensi/map.php?latitude=' + latitude + '&longitude=' + longitude + '&name=' + name + '" frameborder="0" width="100%" height="400px" marginwidth="0" marginheight="0" scrolling="no">';
 });
-   
+
 
 
 

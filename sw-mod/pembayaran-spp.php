@@ -20,7 +20,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                 $last_status = $last_status_data['status'] ?? null;
 
                 // Hitung jumlah pembayaran berhasil
-                $query_berhasil = "SELECT COUNT(*) as total FROM pembayaran_spp WHERE employees_id = '$user_id' AND MONTH(tanggal) = $bulan AND YEAR(tanggal) = $tahun AND status='Berhasil'";
+                $query_berhasil = "SELECT COUNT(*) as total FROM pembayaran_spp WHERE employees_id = '$user_id' AND MONTH(tanggal) = $bulan AND YEAR(tanggal) = $tahun AND status='berhasil'";
                 $result_berhasil = $connection->query($query_berhasil);
                 $row_berhasil = $result_berhasil->fetch_assoc();
                 $jumlah_berhasil = (int)$row_berhasil['total'];
@@ -127,7 +127,7 @@ if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
                 $pembayaran_success = 'Y';
                 /** Update */
                 $update = "UPDATE pembayaran_spp 
-                SET status='Berhasil' WHERE MONTH(tanggal) =$month AND YEAR(tanggal) =$year AND employees_id='$row_user[id]' AND tahun_pelajaran='$tahun_pelajaran'";
+                SET status='berhasil' WHERE MONTH(tanggal) =$month AND YEAR(tanggal) =$year AND employees_id='$row_user[id]' AND tahun_pelajaran='$tahun_pelajaran'";
                 $connection->query($update);
             } else {
                 $pembayaran_success = 'N';

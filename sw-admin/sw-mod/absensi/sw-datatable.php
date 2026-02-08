@@ -106,8 +106,9 @@ include('../../../sw-library/sw-function.php');
         $row_position    = $result_position->fetch_assoc();
 
 
-        $bln = date("m");
-            $query_hadir="SELECT presence_id FROM presence WHERE MONTH(presence_date)='$bln' AND kehadiran='Hadir' AND employees_id=$aRow[id]";
+        $bln = isset($_GET['bulan']) ? mysqli_real_escape_string($gaSql['link'], $_GET['bulan']) : date("m");
+        $thn = isset($_GET['tahun']) ? mysqli_real_escape_string($gaSql['link'], $_GET['tahun']) : date("Y");
+            $query_hadir="SELECT presence_id FROM presence WHERE MONTH(presence_date)='$bln' AND YEAR(presence_date)='$thn' AND kehadiran='Hadir' AND employees_id=$aRow[id]";
             $hadir= $connection->query($query_hadir);
 
         for ($i=1 ; $i<count($aColumns) ; $i++){

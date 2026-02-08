@@ -151,19 +151,19 @@ case 'laporan':
                 $filter ="MONTH(presence_date)='$month' AND year(presence_date)='$year'";
               }
 
-              $query_hadir="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Hadir' ORDER BY presence_id DESC";
+              $query_hadir="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Hadir' AND employees_id='$row[id]' ORDER BY presence_id DESC";
               $hadir= $connection->query($query_hadir);
         
-              $query_sakit="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Sakit' ORDER BY presence_id";
+              $query_sakit="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Sakit' AND employees_id='$row[id]' ORDER BY presence_id";
               $sakit = $connection->query($query_sakit);
         
-              $query_izin="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Izin' ORDER BY presence_id";
+              $query_izin="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Izin' AND employees_id='$row[id]' ORDER BY presence_id";
               $izin = $connection->query($query_izin);
         
-              $query_cuty="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Cuti'";
+              $query_cuty="SELECT presence_id FROM presence WHERE $filter AND kehadiran='Cuti' AND employees_id='$row[id]'";
               $cuty = $connection->query($query_cuty);
         
-              $query_telat ="SELECT presence_id FROM presence WHERE $filter AND status_in='Telat'";
+              $query_telat ="SELECT presence_id FROM presence WHERE $filter AND status_in='Telat' AND employees_id='$row[id]'";
               $telat = $connection->query($query_telat);
               
               $alpha = $jumlahhari - $hadir->num_rows - $cuty->num_rows - $izin->num_rows - $sum - $libur;

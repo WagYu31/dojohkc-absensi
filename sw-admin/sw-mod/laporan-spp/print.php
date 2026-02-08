@@ -205,14 +205,13 @@ echo'
           <tr>
             <td>'.$no.'</td>
             <td>'.strip_tags($data_user['employees_name']??'-').'</td>';
-            for($bulan=1; $bulan<=12; $bulan++){
+            for($b=1; $b<=12; $b++){
 
-              $bulan = str_pad($bulan, 2, '0', STR_PAD_LEFT);
-              $query_pembayaran ="SELECT nominal FROM pembayaran_spp WHERE employees_id='$data_user[id]' AND bulan='$bulan' AND tahun_pelajaran='$tahun_pelajaran' AND status='berhasil'";
+              $query_pembayaran ="SELECT SUM(nominal) AS total_nominal FROM pembayaran_spp WHERE employees_id='$data_user[id]' AND CAST(bulan AS UNSIGNED)=$b AND tahun_pelajaran='$tahun_pelajaran' AND status='berhasil'";
               $result_pembayaran = $connection->query($query_pembayaran);
-              if($result_pembayaran->num_rows > 0){
-                $data_pembayaran = $result_pembayaran->fetch_assoc();
-                $nominal_pembayaran = 'Rp '.format_angka($data_pembayaran['nominal']??'0').'';
+              $data_pembayaran = $result_pembayaran->fetch_assoc();
+              if(!empty($data_pembayaran['total_nominal'])){
+                $nominal_pembayaran = 'Rp '.format_angka($data_pembayaran['total_nominal']).'';
               }else{
                 $nominal_pembayaran = '-';
               }
@@ -333,12 +332,11 @@ if ($result_user->num_rows > 0) {
 
     $data_row = [$no, strip_tags($data_user['employees_name']??'-')];
     for($bulan=1; $bulan<=12; $bulan++){
-      $bulan_str = str_pad($bulan, 2, '0', STR_PAD_LEFT);
-      $query_pembayaran = "SELECT nominal FROM pembayaran_spp WHERE employees_id='{$data_user['id']}' AND bulan='$bulan_str' AND tahun_pelajaran='$tahun_pelajaran' AND status='berhasil'";
+      $query_pembayaran = "SELECT SUM(nominal) AS total_nominal FROM pembayaran_spp WHERE employees_id='{$data_user['id']}' AND CAST(bulan AS UNSIGNED)=$bulan AND tahun_pelajaran='$tahun_pelajaran' AND status='berhasil'";
       $result_pembayaran = $connection->query($query_pembayaran);
-      if($result_pembayaran->num_rows > 0){
-        $data_pembayaran = $result_pembayaran->fetch_assoc();
-        $nominal_pembayaran = $data_pembayaran['nominal']??0;
+      $data_pembayaran = $result_pembayaran->fetch_assoc();
+      if(!empty($data_pembayaran['total_nominal'])){
+        $nominal_pembayaran = $data_pembayaran['total_nominal'];
       } else {
         $nominal_pembayaran = 0;
       }

@@ -37,7 +37,7 @@ $data = $result->fetch_assoc();
         if (isset($result['transaction_status']) && $result['transaction_status'] === 'settlement') {
             $pembayaran_success = 'Y';
             /** Update */
-            $update = "UPDATE pembayaran_spp SET status='Berhasil' WHERE employees_id='$row_user[id]' AND order_id='$order_id'";
+            $update = "UPDATE pembayaran_spp SET status='berhasil' WHERE employees_id='$row_user[id]' AND order_id='$order_id'";
             $connection->query($update);
         } else {
             $pembayaran_success = 'N';

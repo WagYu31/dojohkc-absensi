@@ -291,7 +291,6 @@ case 'update':
 /* --------------- Update Password ------------*/
 break;
 case 'update-password':
-include('../../../sw-library/PHPMailer/PHPMailerAutoload.php');
 
 $error = array();
   if (empty($_POST['id'])) {
@@ -320,44 +319,11 @@ $error = array();
     if($result ->num_rows >0){
       $row = $result->fetch_assoc();
 
-  // Konfigurasi SMTP
-    $mail = new PHPMailer;
-    $mail->isSMTP();
-    $mail->Host = $gmail_host;
-    $mail->Username = $gmail_username; // Email Pengirim
-    $mail->Password = $gmail_password; // Isikan dengan Password email pengirim
-    $mail->Port = $gmail_port;
-    $mail->SMTPAuth = true;
-    $mail->SMTPSecure = 'ssl';
-    //$mail->SMTPDebug = 2; // Aktifkan untuk melakukan debugging
-
-    $mail->setFrom($gmail_username, $site_name);  //Email Pengirim
-    $mail->addAddress($employees_email, $row['employees_name']); // Email Penerima
-
-    $mail->isHTML(true); // Aktifkan jika isi emailnya berupa html
-   // Subjek email
-    $mail->Subject = 'Resset password Baru | '.$site_name.'';
-
-    $mailContent = '<h1>'.$site_name.'</h1><br>
-        <h3>Halo, '.$row['employees_email'].'</h3><br>
-        <p>Kamu baru saja mengirim permintaan reset password akun '.$site_name.'.<br>
-        <b>Password Baru Anda : '.$employees_password.'</b><br><br><br>Harap simpan baik-baik akun Anda.<br><br>
-        Hormat Kami,<br>'.$site_name.'<br>Email otomatis, Mohon tidak membalas email ini</p>';
-    
-    $mail->Body = $mailContent;
-    //$mail->AddEmbeddedImage('image/logo.png', ''.$site_name.'', '.sw-content/'.$site_logo.''); //Logo 
-
           $update="UPDATE employees SET employees_password='$password_baru' WHERE id='$id'"; 
           if($connection->query($update) === false) { 
-              die($connection->error.__LINE__); 
               echo'Data tidak berhasil disimpan!';
           } else{
               echo'success';
-              if($mail->send()){
-                  //echo 'Pesan telah terkirim';
-                }else{
-                  echo 'Mailer Error: ' . $mail->ErrorInfo;
-                }
           }}
           else{           
               echo'Bidang inputan tidak boleh ada yang kosong..!';
