@@ -201,6 +201,39 @@ if($result_atlet && $result_atlet->num_rows > 0){
       background-clip: text;
     }
     .navbar-actions { display: flex; align-items: center; gap: 8px; }
+    .nav-menu {
+      display: flex; align-items: center; gap: 4px;
+    }
+    .nav-menu a {
+      padding: 6px 12px; border-radius: 6px;
+      font-size: 0.82rem; font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .nav-menu a:hover {
+      color: #C8A000;
+      background: var(--bg-card);
+    }
+    .nav-menu a.active {
+      color: #C8A000;
+      background: var(--bg-card);
+    }
+    .btn-phone {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #4CAF50;
+      border: 1px solid var(--border-card);
+      background: var(--bg-card);
+      transition: all 0.3s;
+      font-size: 1.1rem;
+    }
+    .btn-phone:hover {
+      background: #4CAF50;
+      color: #fff;
+      border-color: #4CAF50;
+    }
     .navbar-links { display: flex; align-items: center; gap: 8px; }
     .navbar-links a {
       padding: 8px 16px; border-radius: 8px;
@@ -222,6 +255,29 @@ if($result_atlet && $result_atlet->num_rows > 0){
       transform: translateY(-1px);
       box-shadow: 0 4px 15px rgba(227,6,19,0.4);
     }
+    /* Hamburger */
+    .hamburger {
+      display: none;
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--border-card);
+      background: var(--bg-card);
+      flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .hamburger span {
+      display: block;
+      width: 20px; height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
     /* Theme Toggle */
     .theme-toggle {
       width: 40px; height: 40px;
@@ -796,33 +852,142 @@ if($result_atlet && $result_atlet->num_rows > 0){
 
     /* ============ FOOTER ============ */
     .footer {
-      padding: 40px 24px 24px;
+      padding: 60px 24px 24px;
       background: var(--bg-tertiary);
       border-top: 1px solid var(--border-subtle);
-      text-align: center;
     }
-    .footer-logo { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 16px; }
-    .footer-logo img { width: 36px; height: 36px; border-radius: 50%; }
-    .footer-logo span {
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto 40px;
+    }
+    .footer-col h4 {
       font-family: 'Noto Serif', serif;
       font-size: 1rem; font-weight: 700;
       color: #C8A000;
+      margin-bottom: 16px;
+      position: relative;
+      padding-bottom: 10px;
     }
-    .footer-links {
-      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
-      margin-bottom: 20px;
+    .footer-col h4::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 30px; height: 2px;
+      background: linear-gradient(90deg, #E30613, #C8A000);
+      border-radius: 2px;
     }
-    .footer-links a {
+    .footer-about-logo {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 14px;
+    }
+    .footer-about-logo img { width: 40px; height: 40px; border-radius: 50%; }
+    .footer-about-logo span {
+      font-family: 'Noto Serif', serif;
+      font-size: 1.1rem; font-weight: 700;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .footer-about-desc {
       font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+    .footer-nav-links {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .footer-nav-links a {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      transition: all 0.3s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .footer-nav-links a:hover {
+      color: #C8A000;
+      padding-left: 6px;
+    }
+    .footer-nav-links a ion-icon {
+      font-size: 0.7rem;
+      color: #E30613;
+    }
+    .footer-schedule {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .footer-schedule td {
+      font-size: 0.82rem;
+      padding: 5px 0;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .footer-schedule td:first-child {
+      font-weight: 600;
+      color: var(--text-secondary);
+      width: 70px;
+    }
+    .footer-schedule .closed {
+      color: #E30613;
+      font-style: italic;
+    }
+    .footer-contact-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 14px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .footer-contact-item ion-icon {
+      font-size: 1.2rem;
+      color: #C8A000;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .footer-contact-item a {
       color: var(--text-muted);
       transition: color 0.3s;
     }
-    .footer-links a:hover { color: #C8A000; }
+    .footer-contact-item a:hover { color: #C8A000; }
+    .footer-divider {
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+      max-width: 1200px;
+      margin: 0 auto 20px;
+    }
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
     .footer-copy {
       font-size: 0.75rem;
       color: var(--text-faint);
     }
     .footer-copy a { color: var(--text-muted); }
+    .footer-socials {
+      display: flex; gap: 12px;
+    }
+    .footer-socials a {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    .footer-socials a:hover {
+      background: #C8A000;
+      color: #000;
+      border-color: #C8A000;
+    }
 
     /* ============ SCROLL INDICATOR ============ */
     .scroll-indicator {
@@ -910,6 +1075,29 @@ if($result_atlet && $result_atlet->num_rows > 0){
     }
 
     /* ============ RESPONSIVE ============ */
+    @media (max-width: 1024px) {
+      .nav-menu { display: none; }
+      .hamburger { display: flex; }
+      .nav-menu.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        background: var(--navbar-bg-scroll);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        padding: 12px 24px 20px;
+        border-bottom: 1px solid var(--border-subtle);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        gap: 2px;
+      }
+      .nav-menu.open a {
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+      }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+    }
     @media (max-width: 768px) {
       .navbar-links .link-text { display: none; }
       .about-grid { grid-template-columns: 1fr; gap: 30px; }
@@ -924,6 +1112,9 @@ if($result_atlet && $result_atlet->num_rows > 0){
       .feature-card { padding: 20px 16px; }
       .feature-icon { width: 44px; height: 44px; font-size: 20px; }
       .schedule-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .footer-col h4::after { left: 0; }
+      .footer-bottom { flex-direction: column; text-align: center; }
     }
     @media (max-width: 400px) {
       .features-grid { grid-template-columns: 1fr; }
@@ -942,15 +1133,28 @@ if($result_atlet && $result_atlet->num_rows > 0){
     <img src="<?php echo $base_url; ?>/sw-admin/sw-assets/img/logo-dojo_hkcpng.png" alt="Logo">
     <span>DOJO HKC</span>
   </a>
+  <div class="nav-menu" id="navMenu">
+    <a href="#" onclick="scrollToTop();return false;">Beranda</a>
+    <a href="#tentang">Tentang</a>
+    <a href="#fitur">Fitur</a>
+    <a href="#jadwal">Jadwal</a>
+    <a href="#poster">Poster</a>
+    <a href="#galeri">Galeri</a>
+    <a href="#atlet">Atlet</a>
+  </div>
   <div class="navbar-actions">
     <button class="theme-toggle" id="themeToggle" aria-label="Ganti tema">
       <span class="icon-moon"><ion-icon name="moon-outline"></ion-icon></span>
       <span class="icon-sun"><ion-icon name="sunny-outline"></ion-icon></span>
     </button>
+    <a href="tel:08129215459" class="btn-phone" title="Hubungi Kami"><ion-icon name="call-outline"></ion-icon></a>
     <div class="navbar-links">
       <a href="./home" class="btn-login"><ion-icon name="log-in-outline"></ion-icon> <span class="link-text">Masuk</span></a>
       <a href="./registrasi" class="btn-register"><span class="link-text">Daftar</span></a>
     </div>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 
@@ -1218,29 +1422,100 @@ if($result_atlet && $result_atlet->num_rows > 0){
 
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
-  <div class="footer-logo">
-    <img src="<?php echo $base_url; ?>/sw-admin/sw-assets/img/logo-dojo_hkcpng.png" alt="Logo">
-    <span><?php echo ls($ls, 'footer_text', 'DOJO HKC'); ?></span>
+  <div class="footer-grid">
+    <!-- Column 1: About -->
+    <div class="footer-col">
+      <div class="footer-about-logo">
+        <img src="<?php echo $base_url; ?>/sw-admin/sw-assets/img/logo-dojo_hkcpng.png" alt="Logo">
+        <span><?php echo ls($ls, 'footer_text', 'DOJO HKC'); ?></span>
+      </div>
+      <p class="footer-about-desc">
+        Dojo HKC (Halim Karate Champion) adalah pusat pelatihan karate di bawah naungan INKANAS yang berkomitmen membentuk karakter disiplin, tangguh, dan berprestasi.
+      </p>
+    </div>
+    <!-- Column 2: Navigation -->
+    <div class="footer-col">
+      <h4>Navigasi</h4>
+      <div class="footer-nav-links">
+        <a href="#tentang"><ion-icon name="chevron-forward-outline"></ion-icon> Tentang Kami</a>
+        <a href="#fitur"><ion-icon name="chevron-forward-outline"></ion-icon> Fitur Sistem</a>
+        <a href="#jadwal"><ion-icon name="chevron-forward-outline"></ion-icon> Jadwal Latihan</a>
+        <a href="#poster"><ion-icon name="chevron-forward-outline"></ion-icon> Poster</a>
+        <a href="#galeri"><ion-icon name="chevron-forward-outline"></ion-icon> Galeri</a>
+        <a href="#atlet"><ion-icon name="chevron-forward-outline"></ion-icon> Atlet Berprestasi</a>
+        <a href="./registrasi"><ion-icon name="chevron-forward-outline"></ion-icon> Daftar</a>
+      </div>
+    </div>
+    <!-- Column 3: Schedule -->
+    <div class="footer-col">
+      <h4>Jam Latihan</h4>
+      <table class="footer-schedule">
+        <tr><td>Senin</td><td class="closed">Tutup</td></tr>
+        <tr><td>Selasa</td><td>17.00 – 21.00</td></tr>
+        <tr><td>Rabu</td><td>18.30 – 21.00</td></tr>
+        <tr><td>Kamis</td><td>19.00 – 21.00</td></tr>
+        <tr><td>Jumat</td><td>19.00 – 21.00</td></tr>
+        <tr><td>Sabtu</td><td class="closed">Tutup</td></tr>
+        <tr><td>Minggu</td><td>14.00 – 16.00</td></tr>
+      </table>
+    </div>
+    <!-- Column 4: Contact -->
+    <div class="footer-col">
+      <h4>Kontak</h4>
+      <div class="footer-contact-item">
+        <ion-icon name="location-outline"></ion-icon>
+        <span>2, RT.2/RW.4, Lubang Buaya, Kec. Cipayung, Kota Jakarta Timur, DKI Jakarta 13810</span>
+      </div>
+      <div class="footer-contact-item">
+        <ion-icon name="call-outline"></ion-icon>
+        <a href="tel:08129215459">0812-9215-459</a>
+      </div>
+      <div class="footer-contact-item">
+        <ion-icon name="logo-whatsapp"></ion-icon>
+        <a href="https://wa.me/628129215459" target="_blank">WhatsApp</a>
+      </div>
+    </div>
   </div>
-  <div class="footer-links">
-    <a href="#tentang">Tentang</a>
-    <a href="#fitur">Fitur</a>
-    <a href="#jadwal">Jadwal</a>
-    <a href="#poster">Poster</a>
-    <a href="#galeri">Galeri</a>
-    <a href="#atlet">Atlet</a>
-    <a href="./home">Login</a>
-    <a href="./registrasi">Daftar</a>
+  <hr class="footer-divider">
+  <div class="footer-bottom">
+    <p class="footer-copy">
+      &copy; 2021 — <?php echo date('Y'); ?> <?php echo $website_name; ?> — 
+      Halim Karate Champion &bull; INKANAS &bull; 
+      <a href="https://s-widodo.com" target="_blank">s-widodo.com</a>
+    </p>
+    <div class="footer-socials">
+      <a href="https://wa.me/628129215459" target="_blank" title="WhatsApp"><ion-icon name="logo-whatsapp"></ion-icon></a>
+      <a href="tel:08129215459" title="Telepon"><ion-icon name="call-outline"></ion-icon></a>
+    </div>
   </div>
-  <p class="footer-copy">
-    &copy; 2021 — <?php echo date('Y'); ?> <?php echo $website_name; ?> — 
-    Halim Karate Champion &bull; INKANAS &bull; 
-    <a href="https://s-widodo.com" target="_blank">s-widodo.com</a>
-  </p>
 </footer>
 
 <!-- ===== SCRIPTS ===== -->
 <script>
+// Hamburger menu
+(function() {
+  const hamburger = document.getElementById('hamburgerBtn');
+  const navMenu = document.getElementById('navMenu');
+  if (hamburger && navMenu) {
+    hamburger.addEventListener('click', function() {
+      hamburger.classList.toggle('active');
+      navMenu.classList.toggle('open');
+    });
+    // Close menu when clicking a link
+    navMenu.querySelectorAll('a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        hamburger.classList.remove('active');
+        navMenu.classList.remove('open');
+      });
+    });
+  }
+})();
+
+// Scroll to top
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 // Navbar scroll effect
 window.addEventListener('scroll', function() {
   const navbar = document.getElementById('navbar');
