@@ -66,7 +66,7 @@ echo'<aside class="main-sidebar">
      }
 
 
-     if($mod =='jadwal-lomba' OR $mod=='informasi'){ echo'<li class="active treeview">'; 
+     if($mod =='jadwal-lomba' OR $mod=='informasi' OR $mod=='poster' OR $mod=='galeri'){ echo'<li class="active treeview">'; 
       }else{echo'<li class="treeview">';}
 
       if($level_user =='1'){
@@ -81,10 +81,15 @@ echo'<aside class="main-sidebar">
             if($mod =='jadwal-lomba'){echo'<li class="active">'; }else{echo'<li>';}
              echo'<a href="./jadwal-lomba"><i class="fa fa-circle-o"></i> Jadwal Lomba/Latihan</a></li>';
             if($mod =='informasi'){echo'<li class="active">'; }else{echo'<li>';}
-             echo'<a href="./informasi"><i class="fa fa-circle-o"></i> Informasi</a></li>
+             echo'<a href="./informasi"><i class="fa fa-circle-o"></i> Informasi</a></li>';
+            if($mod =='poster'){echo'<li class="active">'; }else{echo'<li>';}
+             echo'<a href="./poster"><i class="fa fa-circle-o"></i> Poster Rekrutmen</a></li>';
+            if($mod =='galeri'){echo'<li class="active">'; }else{echo'<li>';}
+             echo'<a href="./galeri"><i class="fa fa-circle-o"></i> Galeri Media</a></li>
           </ul>
         </li>';
      }
+
 
      
       if($mod =='izin'){echo'<li class="active">'; }else{echo'<li>';}
@@ -115,6 +120,9 @@ echo'<aside class="main-sidebar">
 
         if($mod =='setting'){echo'<li class="active">'; }else{echo'<li>';}
           echo'<a href="./setting"><i class="fa fa-cogs" aria-hidden="true"></i> <span>Pengaturan Web</span></a></li>';
+
+        if($mod =='landing-setting'){echo'<li class="active">'; }else{echo'<li>';}
+          echo'<a href="./landing-setting"><i class="fa fa-desktop" aria-hidden="true"></i> <span>Landing Page</span></a></li>';
 
         if($mod =='user'){echo'<li class="active">'; }else{echo'<li>';}
         echo'<a href="./user"><i class="fa fa-user"></i> <span>Akun Pengurus Dojo</span></a></li>';

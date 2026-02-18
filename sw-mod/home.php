@@ -26,12 +26,22 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
                         </div>
         
                         <div class="form-group basic">
-                            <div class="input-wrapper">
+                            <div class="input-wrapper" style="position:relative;">
                                 <label class="label" for="password1">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" placeholder="Kata sandi Anda">
-                                <i class="clear-input"><ion-icon name="close-circle"></ion-icon></i>
+                                <input type="password" class="form-control" id="password" name="password" placeholder="Kata sandi Anda" style="padding-right:40px;">
+                                <span id="togglePassword" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;z-index:2;font-size:22px;color:#6c757d;">
+                                    <ion-icon name="eye-off-outline"></ion-icon>
+                                </span>
                             </div>
                         </div>
+                        <script>
+                        document.getElementById("togglePassword").addEventListener("click",function(){
+                            var p=document.getElementById("password");
+                            var icon=this.querySelector("ion-icon");
+                            if(p.type==="password"){p.type="text";icon.setAttribute("name","eye-outline");}
+                            else{p.type="password";icon.setAttribute("name","eye-off-outline");}
+                        });
+                        </script>
                     </div>
                 </div>
 

@@ -1,0 +1,54 @@
+services:
+  web:
+    build: .
+    container_name: absensi-web
+    ports:
+      - "80:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - absensi-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: absensi-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kdhlgwco_absensi_v3_radius_shift_spp
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - absensi-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: absensi-phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - absensi-network
+
+volumes:
+  mysql_data:
+
+
+networks:
+  absensi-network:
+    driver: bridge

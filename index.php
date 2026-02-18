@@ -4,9 +4,9 @@
   include_once 'sw-library/sw-config.php';
   include_once 'sw-library/sw-function.php';
   //ob_start("minify_html");
-  $dbhostsql      = 'localhost';
+  $dbhostsql      = 'mysql'; // Docker service name
   $dbusersql      = 'root';
-  $dbpasswordsql  = '';
+  $dbpasswordsql  = 'root';
   $dbnamesql      = 'kdhlgwco_absensi_v3_radius_shift_spp';
   $connection     = mysqli_connect($dbhostsql, $dbusersql, $dbpasswordsql, $dbnamesql) or die( mysqli_error($connection));
 
@@ -50,9 +50,11 @@
   $website_email      = $row_site['site_email'];
 
   
-$mod = "home";
+$mod = "landing";
+if(isset($_COOKIE['COOKIES_MEMBER']) && !empty($_COOKIE['COOKIES_MEMBER'])){
+  $mod = "home";
+}
 if(!empty($_GET['mod'])){$mod = mysqli_escape_string($connection,@$_GET['mod']);}
-else {$mod ='home';}
 if(file_exists("sw-mod/$mod.php")){
     require_once("sw-mod/$mod.php");
 }else{

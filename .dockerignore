@@ -1,0 +1,14 @@
+.git
+.gitignore
+.gitattributes
+Database/
+Panduan/
+Preview/
+Aplikasi Builder to APK Android/
+docker/
+README.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+kode production dojo/
+dojohkc-absensi/

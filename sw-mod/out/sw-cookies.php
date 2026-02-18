@@ -15,9 +15,9 @@ else{
 	$query_user = "SELECT * FROM employees where id='$COOKIES_MEMBER'";
     $result_user = $connection->query($query_user);
     $row_user     = $result_user->fetch_assoc();
-    extract($row_user);
 
-	if($result_user->num_rows > 0){
+	if($result_user->num_rows > 0 && $row_user !== null){
+		extract($row_user);
 		//echo'Login';
 		//echo $row_user['created_cookies'];
 	}
