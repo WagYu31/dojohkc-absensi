@@ -1169,7 +1169,7 @@ if($result_atlet && $result_atlet->num_rows > 0){
       <span class="icon-moon"><ion-icon name="moon-outline"></ion-icon></span>
       <span class="icon-sun"><ion-icon name="sunny-outline"></ion-icon></span>
     </button>
-    <a href="tel:08129215459" class="btn-phone" title="Hubungi Kami"><ion-icon name="call-outline"></ion-icon></a>
+    <a href="https://wa.me/628129215459" target="_blank" class="btn-phone" title="WhatsApp Kami"><ion-icon name="logo-whatsapp"></ion-icon></a>
     <div class="navbar-links">
       <a href="./home" class="btn-login"><ion-icon name="log-in-outline"></ion-icon> <span class="link-text">Masuk</span></a>
       <a href="./registrasi" class="btn-register"><span class="link-text">Daftar</span></a>
