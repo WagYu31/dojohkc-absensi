@@ -4,10 +4,10 @@
   include_once 'sw-library/sw-config.php';
   include_once 'sw-library/sw-function.php';
   //ob_start("minify_html");
-  $dbhostsql      = 'mysql'; // Docker service name
-  $dbusersql      = 'root';
-  $dbpasswordsql  = 'root';
-  $dbnamesql      = 'kdhlgwco_absensi_v3_radius_shift_spp';
+  $dbhostsql      = $DB_HOST;
+  $dbusersql      = $DB_USER;
+  $dbpasswordsql  = $DB_PASSWD;
+  $dbnamesql      = $DB_NAME;
   $connection     = mysqli_connect($dbhostsql, $dbusersql, $dbpasswordsql, $dbnamesql) or die( mysqli_error($connection));
 
    if(!isset($_COOKIE['COOKIES_MEMBER']) && !isset($_COOKIE['COOKIES_COOKIES'])){
