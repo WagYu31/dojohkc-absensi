@@ -1162,6 +1162,7 @@ if($result_atlet && $result_atlet->num_rows > 0){
     <a href="#poster">Poster</a>
     <a href="#galeri">Galeri</a>
     <a href="#atlet">Atlet</a>
+    <a href="#kontak">Kontak</a>
   </div>
   <div class="navbar-actions">
     <button class="theme-toggle" id="themeToggle" aria-label="Ganti tema">
@@ -1442,7 +1443,7 @@ if($result_atlet && $result_atlet->num_rows > 0){
 </section>
 
 <!-- ===== FOOTER ===== -->
-<footer class="footer">
+<footer class="footer" id="kontak">
   <div class="footer-grid">
     <!-- Column 1: About -->
     <div class="footer-col">
