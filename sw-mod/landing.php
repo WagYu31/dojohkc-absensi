@@ -858,11 +858,32 @@ if($result_atlet && $result_atlet->num_rows > 0){
     }
     .footer-grid {
       display: grid;
-      grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+      grid-template-columns: 1.5fr 1fr 1fr 1.2fr 1.5fr;
       gap: 40px;
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto 40px;
     }
+    .footer-map iframe {
+      width: 100%;
+      height: 200px;
+      border: 0;
+      border-radius: 12px;
+      filter: brightness(0.85) contrast(1.1);
+      transition: filter 0.3s;
+    }
+    .footer-map iframe:hover {
+      filter: brightness(1) contrast(1);
+    }
+    .footer-map-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: #C8A000;
+      transition: color 0.3s;
+    }
+    .footer-map-link:hover { color: #FFD700; }
     .footer-col h4 {
       font-family: 'Noto Serif', serif;
       font-size: 1rem; font-weight: 700;
@@ -1096,7 +1117,7 @@ if($result_atlet && $result_atlet->num_rows > 0){
         border-radius: 8px;
         font-size: 0.9rem;
       }
-      .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+      .footer-grid { grid-template-columns: 1fr 1fr 1fr; gap: 30px; }
     }
     @media (max-width: 768px) {
       .navbar-links .link-text { display: none; }
@@ -1473,6 +1494,18 @@ if($result_atlet && $result_atlet->num_rows > 0){
       <div class="footer-contact-item">
         <ion-icon name="logo-whatsapp"></ion-icon>
         <a href="https://wa.me/628129215459" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+    <!-- Column 5: Google Maps -->
+    <div class="footer-col">
+      <h4>Lokasi Kami</h4>
+      <div class="footer-map">
+        <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.6!2d106.8900!3d-6.3350!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69ed7b3f16b4e5%3A0x72e30e8e8e8e8e8e!2sLubang+Buaya%2C+Cipayung%2C+East+Jakarta+City%2C+Jakarta!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+          allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <a href="https://maps.app.goo.gl/YourDojoLink" target="_blank" class="footer-map-link">
+          <ion-icon name="navigate-outline"></ion-icon> Buka di Google Maps
+        </a>
       </div>
     </div>
   </div>
