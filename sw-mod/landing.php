@@ -1502,9 +1502,9 @@ if($result_atlet && $result_atlet->num_rows > 0){
       <h4>Lokasi Kami</h4>
       <div class="footer-map">
         <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3965.6!2d106.8900!3d-6.3350!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e69ed7b3f16b4e5%3A0x72e30e8e8e8e8e8e!2sLubang+Buaya%2C+Cipayung%2C+East+Jakarta+City%2C+Jakarta!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+          src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Dojo+HKC+Halim+Karate+Champion,Lubang+Buaya,Cipayung,Jakarta+Timur&zoom=16"
           allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <a href="https://maps.app.goo.gl/YourDojoLink" target="_blank" class="footer-map-link">
+        <a href="https://www.google.com/maps/search/Dojo+HKC+Halim+Karate+Champion+Lubang+Buaya+Cipayung+Jakarta+Timur" target="_blank" class="footer-map-link">
           <ion-icon name="navigate-outline"></ion-icon> Buka di Google Maps
         </a>
       </div>
