@@ -1559,6 +1559,13 @@ if($result_atlet && $result_atlet->num_rows > 0){
 
     /* --- MOBILE PORTRAIT (max 480px) --- */
     @media (max-width: 480px) {
+      /* Navbar - clean mobile: only theme toggle + hamburger */
+      .btn-phone { display: none !important; }
+      .navbar-links { display: none !important; }
+      .navbar-actions { gap: 8px; }
+      .theme-toggle { width: 36px; height: 36px; font-size: 16px; }
+      .hamburger { width: 36px; height: 36px; }
+
       /* Hero */
       .hero { padding: 80px 14px 40px; }
       .hero-logo { width: 100px; padding: 8px; }
