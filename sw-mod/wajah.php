@@ -109,26 +109,19 @@ echo'
                     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
                     background:rgba(0,0,0,0.6); z-index:10;">
 
-                    <!-- Tombol kamera live -->
-                    <button id="btn-start-cam" type="button" class="btn btn-success"
-                        style="padding:12px 28px; border-radius:30px; font-size:15px; font-weight:600;
-                               box-shadow:0 4px 20px rgba(0,0,0,0.4); min-width:200px;">
-                        <ion-icon name="videocam-outline" style="vertical-align:middle;"></ion-icon>
-                        &nbsp;Buka Kamera Live
-                    </button>
-
-                    <!-- Pemisah -->
-                    <span style="color:rgba(255,255,255,0.5); font-size:12px;">atau</span>
-
-                    <!-- Tombol ambil foto langsung (file input - 100% bekerja) -->
-                    <label for="file-camera" class="btn btn-primary"
-                        style="padding:12px 28px; border-radius:30px; font-size:15px; font-weight:600;
-                               box-shadow:0 4px 20px rgba(0,0,0,0.4); cursor:pointer; min-width:200px; margin:0;">
+                    <!-- Tombol ambil foto (file input native — bekerja di semua device) -->
+                    <label for="file-camera" class="btn btn-success"
+                        style="padding:14px 32px; border-radius:30px; font-size:16px; font-weight:600;
+                               box-shadow:0 4px 20px rgba(0,0,0,0.4); cursor:pointer; min-width:220px; margin:0;">
                         <ion-icon name="camera-outline" style="vertical-align:middle;"></ion-icon>
-                        &nbsp;Ambil Foto Langsung
+                        &nbsp;Ambil Foto Wajah
                     </label>
                     <input type="file" id="file-camera" accept="image/*" capture="user"
                         style="display:none;">
+
+                    <span style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; max-width:200px;">
+                        Kamera akan terbuka otomatis
+                    </span>
                 </div>
 
                 <!-- Flash -->
