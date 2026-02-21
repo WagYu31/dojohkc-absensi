@@ -197,8 +197,8 @@ echo'
 document.addEventListener('DOMContentLoaded', function() {
 
     /* ===== ELEMEN ===== */
-    var video        = document.getElementById('face-video');
-    var canvas       = document.getElementById('face-canvas');
+    var videoEl      = document.getElementById('face-video');
+    var canvasEl     = document.getElementById('face-canvas');
     var preview      = document.getElementById('face-preview');
     var camDot       = document.getElementById('cam-dot');
     var camText      = document.getElementById('cam-text');
@@ -209,156 +209,102 @@ document.addEventListener('DOMContentLoaded', function() {
     var panelAmbil      = document.getElementById('panel-ambil');
     var panelKonfirmasi = document.getElementById('panel-konfirmasi');
 
-    var currentStream = null;
-    var facingMode    = 'user';
-    var photoData     = null;
-    var liveMode      = false;   // apakah pakai live camera
+    var photoData = null;
 
-    /* ===== SET STATUS ===== */
+    /* ===== WEBCAM-EASY (sama dgn halaman absent) ===== */
+    var webcam = new Webcam(videoEl, 'user', canvasEl);
+
     function setStatus(text, color) {
         camText.textContent     = text;
         camDot.style.background = color || '#6c757d';
     }
 
-    /* ===== TAMPILKAN PANEL KONFIRMASI ===== */
     function showKonfirmasi() {
         panelAmbil.style.display      = 'none';
         panelKonfirmasi.style.display = '';
         faceGuide.style.display       = 'none';
     }
 
-    /* ===== RESET KE AWAL ===== */
     function resetAll() {
-        if (currentStream) {
-            currentStream.getTracks().forEach(function(t) { t.stop(); });
-            currentStream = null;
-        }
-        video.srcObject      = null;
-        video.style.display  = 'none';
-        canvas.style.display = 'none';
-        preview.style.display = 'none';
+        webcam.stop();
+        videoEl.style.display  = 'none';
+        canvasEl.style.display = 'none';
+        preview.style.display  = 'none';
         faceGuide.style.display = '';
         startOverlay.style.display = 'flex';
         flipBtn.style.display = 'none';
         panelAmbil.style.display      = 'none';
         panelKonfirmasi.style.display = 'none';
         photoData = null;
-        liveMode  = false;
-        setStatus('Pilih metode kamera', '#6c757d');
+        setStatus('Siap', '#6c757d');
     }
 
-    /* ===================================================
-       MODE A: LIVE CAMERA (getUserMedia)
-       FIX: tampilkan video DULU sebelum play() agar
-       browser tidak block karena element hidden
-    =================================================== */
-    function startLiveCamera() {
+    /* ===== BUKA KAMERA (webcam-easy) ===== */
+    function startCamera() {
         setStatus('Memulai kamera...', '#ffc107');
-        startOverlay.style.display = 'none';  // sembunyikan overlay
-        video.style.display = 'block';        // tampilkan video DULU
-        panelAmbil.style.display = '';        // tampilkan tombol ambil
+        startOverlay.style.display = 'none';
 
-        if (currentStream) {
-            currentStream.getTracks().forEach(function(t) { t.stop(); });
-            currentStream = null;
-        }
-
-        // Constraints minimal — hindari hang dari constraint yang tidak didukung
-        var constraints = { video: { facingMode: facingMode } };
-
-        navigator.mediaDevices.getUserMedia(constraints)
-        .then(function(stream) {
-            currentStream   = stream;
-            video.srcObject = stream;
-            video.muted     = true;
-            video.setAttribute('playsinline', '');
+        webcam.start()
+        .then(function(result) {
+            videoEl.style.display = 'block';
             flipBtn.style.display = 'flex';
-            liveMode = true;
-            video.play();
+            panelAmbil.style.display = '';
             setStatus('Kamera Aktif ✓', '#28a745');
         })
         .catch(function(err) {
-            var msg = err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
-                ? 'Izin kamera ditolak — cek pengaturan browser.'
-                : 'Kamera tidak bisa dibuka: ' + err.name;
+            var msg = (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
+                ? 'Izin kamera ditolak — klik ikon 🔒 di address bar'
+                : 'Kamera gagal: ' + (err.name || err);
             setStatus(msg, '#dc3545');
-            // Tampilkan kembali overlay pilihan
-            video.style.display = 'none';
             startOverlay.style.display = 'flex';
         });
     }
 
-    /* Tombol Buka Kamera Live */
-    document.getElementById('btn-start-cam').addEventListener('click', startLiveCamera);
+    /* Tombol Buka Kamera */
+    document.getElementById('btn-start-cam').addEventListener('click', startCamera);
 
     /* Tombol Flip */
     flipBtn.addEventListener('click', function() {
-        facingMode = (facingMode === 'user') ? 'environment' : 'user';
-        startLiveCamera();
+        webcam.flip();
+        webcam.start();
     });
 
-    /* Tombol Ambil Foto (live mode) */
+    /* ===== AMBIL FOTO (live) ===== */
     document.getElementById('btn-ambil').addEventListener('click', function() {
         flash.style.opacity = '1';
         setTimeout(function() { flash.style.opacity = '0'; }, 150);
 
-        var w = video.videoWidth  || 640;
-        var h = video.videoHeight || 480;
-        canvas.width  = w;
-        canvas.height = h;
-
-        var ctx = canvas.getContext('2d');
-        if (facingMode === 'user') {
-            ctx.translate(w, 0);
-            ctx.scale(-1, 1);
-        }
-        ctx.drawImage(video, 0, 0, w, h);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        photoData = canvas.toDataURL('image/jpeg', 0.85);
-
-        /* Stop stream, tampilkan canvas */
-        if (currentStream) {
-            currentStream.getTracks().forEach(function(t) { t.stop(); });
-            currentStream = null;
-        }
-        video.style.display  = 'none';
-        canvas.style.display = 'block';
-        flipBtn.style.display = 'none';
+        photoData = webcam.snap();   // base64 JPEG — sama dgn absent
+        webcam.stop();
+        videoEl.style.display  = 'none';
+        canvasEl.style.display = 'block';
+        flipBtn.style.display  = 'none';
         setStatus('Foto Diambil', '#17a2b8');
         showKonfirmasi();
     });
 
-    /* ===================================================
-       MODE B: FILE INPUT (native camera / galeri)
-       — bekerja di SEMUA browser & device —
-    =================================================== */
+    /* ===== MODE B: PILIH DARI GALERI ===== */
     document.getElementById('file-camera').addEventListener('change', function(e) {
         var file = e.target.files && e.target.files[0];
         if (!file) return;
 
         var reader = new FileReader();
         reader.onload = function(ev) {
-            photoData = ev.target.result;   // base64
-
-            /* Tampilkan preview */
+            photoData = ev.target.result;
             preview.src = photoData;
-            preview.style.display = 'block';
-            canvas.style.display  = 'none';
-            video.style.display   = 'none';
+            preview.style.display  = 'block';
+            canvasEl.style.display = 'none';
+            videoEl.style.display  = 'none';
             startOverlay.style.display = 'none';
             setStatus('Foto siap ✓', '#28a745');
             showKonfirmasi();
         };
         reader.readAsDataURL(file);
-
-        /* Reset input supaya bisa pilih ulang file yang sama */
         this.value = '';
     });
 
     /* ===== ULANG ===== */
-    document.getElementById('btn-ulang').addEventListener('click', function() {
-        resetAll();
-    });
+    document.getElementById('btn-ulang').addEventListener('click', resetAll);
 
     /* ===== SIMPAN ===== */
     document.getElementById('btn-simpan').addEventListener('click', function() {
@@ -391,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /* ===== INIT ===== */
-    setStatus('Pilih metode kamera', '#6c757d');
+    setStatus('Siap', '#6c757d');
 });
 </script>
 <?php
