@@ -9,7 +9,7 @@ include_once $base_path . 'sw-library/sw-config.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_COOKIE['COOKIES_MEMBER']) || !isset($_COOKIE['COOKIES_COOKIES'])) {
+if (empty($_COOKIE['COOKIES_MEMBER'])) {
     echo json_encode(['status' => 'error', 'message' => 'Anda harus login terlebih dahulu']);
     exit;
 }
@@ -19,12 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$cookie_member  = $connection->real_escape_string($_COOKIE['COOKIES_MEMBER']);
-$cookie_cookies = $connection->real_escape_string($_COOKIE['COOKIES_COOKIES']);
-
-$query_user = "SELECT id FROM employees 
-               WHERE employees_email = '$cookie_member' 
-               AND created_cookies = '$cookie_cookies' LIMIT 1";
+// COOKIES_MEMBER menyimpan epm_encode(id), decode dulu untuk dapat employee ID
+$decoded_id  = $connection->real_escape_string(epm_decode($_COOKIE['COOKIES_MEMBER']));
+$query_user  = "SELECT id FROM employees WHERE id = '$decoded_id' LIMIT 1";
 $result_user = $connection->query($query_user);
 
 if (!$result_user || $result_user->num_rows === 0) {
