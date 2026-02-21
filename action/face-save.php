@@ -86,6 +86,25 @@ if (FACEPP_API_KEY !== 'YOUR_API_KEY_HERE') {
     }
 }
 
+
+// ─── Auto-migrasi kolom jika masih TEXT (max 64KB) ────────────────────────
+$colCheck = $connection->query("
+    SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME   = 'employees'
+      AND COLUMN_NAME  = 'face_descriptor'
+    LIMIT 1
+");
+if ($colCheck) {
+    $colRow = $colCheck->fetch_assoc();
+    $colType = strtolower($colRow['COLUMN_TYPE'] ?? '');
+    if (strpos($colType, 'mediumtext') === false && strpos($colType, 'longtext') === false) {
+        // Masih TEXT atau TINYTEXT — upgrade ke MEDIUMTEXT otomatis
+        $connection->query("ALTER TABLE `employees`
+            MODIFY COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci");
+    }
+}
+
 // ─── Simpan foto ke database ───────────────────────────────────────────────
 // Format: "facepp:<base64>" agar bisa dibedakan dari format lama
 $safe_descriptor = $connection->real_escape_string('facepp:' . $photo_base64);
