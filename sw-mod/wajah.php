@@ -206,13 +206,13 @@ echo'
 ';
 ?>
 <script>
-window.addEventListener('load', function () {
-    try { initWajah(); } catch (e) {
+document.addEventListener('DOMContentLoaded', function() {
+    try { initWajah(); } catch(e) {
         var ct = document.getElementById('cam-text');
         var cd = document.getElementById('cam-dot');
         if (ct) ct.textContent = 'Error: ' + e.message;
         if (cd) cd.style.background = '#dc3545';
-        console.error('[wajah] init error:', e);
+        console.error('[wajah] DOMContentLoaded error:', e);
     }
 });
 
@@ -220,15 +220,14 @@ function initWajah() {
     var photoData     = null;
     var stream        = null;
     var currentFacing = 'user';
-    var RING_CIRC     = 215;   // SVG ellipse approximate circumference
-    var progress      = 0;     // 0-100 fill progress
+    var RING_CIRC     = 215;
+    var progress      = 0;
     var scanTimer     = null;
-    var fillRate      = 100 / 30; // fill 100% in 30 ticks × 100ms = 3 seconds
-    var drainRate     = fillRate * 2.5; // drain faster when face leaves
+    var fillRate      = 100 / 30;   /* 3 seconds to fill */
+    var drainRate     = fillRate * 2.5;
 
     var videoEl      = document.getElementById('face-video');
     var canvasEl     = document.getElementById('face-canvas');
-    var faceGuide    = document.getElementById('face-guide');
     var lblCamera    = document.getElementById('lbl-camera');
     var flipBtn      = document.getElementById('flip-camera');
     var camDot       = document.getElementById('cam-dot');
@@ -240,88 +239,88 @@ function initWajah() {
     var retrySection = document.getElementById('retry-section');
     var errorMsg     = document.getElementById('error-msg');
 
-    /* Reusable tiny canvas for pixel sampling */
+    /* Debug: log which elements are missing */
+    if (!videoEl || !camText) {
+        console.error('[wajah] Missing: videoEl='+!!videoEl+' camText='+!!camText);
+        if (camText) camText.textContent = 'Gagal: elemen tidak ditemukan';
+        return;
+    }
+
+    /* Reusable canvas for pixel sampling */
     var sampleCvs = document.createElement('canvas');
     sampleCvs.width = 48; sampleCvs.height = 56;
     var sampleCtx = sampleCvs.getContext('2d');
 
-    if (!videoEl || !camText) {
-        console.error('[wajah] Missing DOM elements');
-        return;
-    }
-
     function setStatus(text, color) {
-        camText.textContent     = text;
-        camDot.style.background = color || '#6c757d';
+        if (camText) camText.textContent     = text;
+        if (camDot)  camDot.style.background = color || '#6c757d';
     }
 
-    /* ─── Check if face is roughly in the oval (pixel brightness heuristic) ─── */
+    /* Check face in oval via pixel brightness (no ML needed) */
     function faceInOval() {
         if (!videoEl.videoWidth) return false;
         var vw = videoEl.videoWidth, vh = videoEl.videoHeight;
-        /* Sample the center oval region */
         sampleCtx.drawImage(videoEl, vw*0.22, vh*0.08, vw*0.56, vh*0.76, 0, 0, 48, 56);
         var data = sampleCtx.getImageData(0, 0, 48, 56).data;
-        var sum = 0, count = 0;
-        for (var i = 0; i < data.length; i += 4) {
-            sum += (data[i] + data[i+1] + data[i+2]) / 3;
-            count++;
-        }
-        var avg = sum / count;
-        /* Face-like brightness: not too dark (< 55), not blown out (> 240) */
+        var sum = 0, n = data.length >> 2;
+        for (var i = 0; i < data.length; i += 4) sum += (data[i]+data[i+1]+data[i+2])/3;
+        var avg = sum / n;
         return avg > 55 && avg < 240;
     }
 
-    /* ─── Update SVG progress ring ─── */
+    /* Animate SVG progress ring */
     function updateRing(pct) {
+        if (!ovalRing) return;
         var filled = (pct / 100) * RING_CIRC;
         ovalRing.setAttribute('stroke-dasharray', filled.toFixed(1) + ' ' + RING_CIRC);
-        /* Color: yellow < 50%, green >= 50% */
         ovalRing.setAttribute('stroke', pct < 50 ? '#facc15' : '#4ade80');
-
-        /* Countdown number */
-        if (pct > 10) {
-            var secsLeft = Math.ceil((100 - pct) / fillRate / 10);
-            ovalCount.textContent = secsLeft > 0 ? secsLeft : '📸';
-            ovalCount.setAttribute('opacity', '0.9');
-        } else {
-            ovalCount.setAttribute('opacity', '0');
+        if (ovalCount) {
+            if (pct > 10) {
+                var sl = Math.ceil((100 - pct) / fillRate / 10);
+                ovalCount.textContent = sl > 0 ? sl : '!';
+                ovalCount.setAttribute('opacity', '0.9');
+            } else {
+                ovalCount.setAttribute('opacity', '0');
+            }
         }
     }
 
-    /* ─── Scanning loop ─── */
+    /* Scanning loop: detect face and fill ring */
     function startScan() {
         if (scanTimer) clearInterval(scanTimer);
         progress = 0;
         updateRing(0);
-        setStatus('Posisikan wajah di oval', '#ffc107');
+        setStatus('Arahkan wajah ke dalam oval', '#ffc107');
 
         scanTimer = setInterval(function() {
             if (!stream) { clearInterval(scanTimer); return; }
-
             if (faceInOval()) {
                 progress = Math.min(100, progress + fillRate);
                 if (progress < 100) {
-                    var secsLeft = Math.ceil((100 - progress) / fillRate / 10);
-                    setStatus('Tahan... ' + secsLeft + 's', '#4ade80');
+                    var sl = Math.ceil((100 - progress) / fillRate / 10);
+                    setStatus('Tahan... ' + sl + 's', '#4ade80');
                 }
             } else {
                 progress = Math.max(0, progress - drainRate);
-                if (progress <= 5) setStatus('Posisikan wajah di oval', '#ffc107');
+                if (progress <= 5) setStatus('Arahkan wajah ke dalam oval', '#ffc107');
             }
-
             updateRing(progress);
-
-            if (progress >= 100) {
-                clearInterval(scanTimer);
-                doAutoCapture();
-            }
+            if (progress >= 100) { clearInterval(scanTimer); doAutoCapture(); }
         }, 100);
     }
 
-    /* ─── Start live camera ─── */
+    /* Fallback when getUserMedia unavailable or denied */
+    function showFallback() {
+        if (stream) { try { stream.getTracks().forEach(function(t){ t.stop(); }); } catch(x){} stream = null; }
+        if (videoEl)  videoEl.style.display   = 'none';
+        if (flipBtn)  flipBtn.style.display   = 'none';
+        if (lblCamera) lblCamera.style.display = 'flex';
+        setStatus('Tap untuk foto', '#6c757d');
+    }
+
+    /* Start getUserMedia camera stream */
     function startCamera(facing) {
-        if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+        if (stream) { try { stream.getTracks().forEach(function(t){ t.stop(); }); } catch(x){} stream = null; }
         currentFacing = facing || 'user';
         setStatus('Memuat kamera...', '#ffc107');
 
@@ -336,138 +335,135 @@ function initWajah() {
         .then(function(s) {
             stream = s;
             videoEl.srcObject = s;
-            videoEl.style.display   = 'block';
-            lblCamera.style.display = 'none';
-            flipBtn.style.display   = 'flex';
-            canvasEl.style.display  = 'none';
+            videoEl.style.display    = 'block';
+            if (lblCamera) lblCamera.style.display  = 'none';
+            if (flipBtn)   flipBtn.style.display    = 'flex';
+            if (canvasEl)  canvasEl.style.display   = 'none';
             setStatus('Kamera aktif', '#28a745');
-            /* Warmup 1.2s then start scanning */
             setTimeout(startScan, 1200);
         })
         .catch(function(err) {
-            console.warn('[wajah] getUserMedia:', err.name);
+            console.warn('[wajah] getUserMedia error:', err.name, err.message);
             showFallback();
         });
     }
 
-    /* ─── Fallback: file input ─── */
-    function showFallback() {
-        if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream=null; }
-        videoEl.style.display   = 'none';
-        flipBtn.style.display   = 'none';
-        lblCamera.style.display = 'flex';
-        setStatus('Tap untuk foto', '#6c757d');
-    }
-
-    /* ─── Auto capture from live video ─── */
+    /* Auto-capture frame from live video */
     function doAutoCapture() {
-        setStatus('📸 Mengambil foto...', '#28a745');
-
-        /* Flash */
+        setStatus('Ambil foto...', '#28a745');
         var flash = document.getElementById('flash-wajah');
-        if (flash) { flash.style.opacity='1'; setTimeout(function(){ flash.style.opacity='0'; }, 200); }
+        if (flash) { flash.style.opacity='1'; setTimeout(function(){ flash.style.opacity='0'; },200); }
 
-        /* Capture */
-        var MAX = 480, vw = videoEl.videoWidth, vh = videoEl.videoHeight;
+        var MAX=480, vw=videoEl.videoWidth, vh=videoEl.videoHeight;
         var ratio = Math.min(MAX/vw, MAX/vh);
-        canvasEl.width  = Math.round(vw * ratio);
-        canvasEl.height = Math.round(vh * ratio);
+        canvasEl.width  = Math.round(vw*ratio);
+        canvasEl.height = Math.round(vh*ratio);
         canvasEl.getContext('2d').drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
         photoData = canvasEl.toDataURL('image/jpeg', 0.82);
 
-        /* Stop stream, show preview */
-        stream.getTracks().forEach(function(t){ t.stop(); }); stream = null;
+        try { stream.getTracks().forEach(function(t){ t.stop(); }); } catch(x){}
+        stream = null;
         videoEl.style.display  = 'none';
         canvasEl.style.display = 'block';
-        flipBtn.style.display  = 'none';
+        if (flipBtn) flipBtn.style.display = 'none';
+        if (ovalRing)  { ovalRing.setAttribute('stroke-dasharray', RING_CIRC+' 0'); ovalRing.setAttribute('stroke','#4ade80'); }
+        if (ovalCount) ovalCount.setAttribute('opacity','0');
+        if (ovalHint)  ovalHint.textContent = 'Menyimpan...';
 
-        /* Reset ring to full green */
-        ovalRing.setAttribute('stroke-dasharray', RING_CIRC + ' 0');
-        ovalRing.setAttribute('stroke', '#4ade80');
-        ovalCount.setAttribute('opacity', '0');
-        ovalHint.textContent = 'Menyimpan...';
-
-        /* Auto save after 600ms */
         setTimeout(doAutoSave, 600);
     }
 
-    /* ─── Auto save to server ─── */
+    /* POST photo to face-save.php */
     function doAutoSave() {
         if (!photoData) return;
-        savingOverlay.style.display = 'flex';
+        if (savingOverlay) savingOverlay.style.display = 'flex';
         setStatus('Menyimpan...', '#1a73e8');
 
-        $.ajax({
-            type: 'POST', url: './action/face-save.php',
-            data: { face_photo: photoData }, dataType: 'json',
-            success: function(res) {
-                savingOverlay.style.display = 'none';
+        /* Use vanilla XHR since jQuery may not be ready yet */
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', './action/face-save.php', true);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) return;
+            if (savingOverlay) savingOverlay.style.display = 'none';
+            try {
+                var res = JSON.parse(xhr.responseText);
                 if (res.status === 'success') {
-                    setStatus('✓ Tersimpan!', '#28a745');
-                    ovalHint.textContent = 'Wajah berhasil didaftarkan!';
-                    swal({ title:'Berhasil!', text:res.message, icon:'success', timer:2200 })
-                        .then(function(){ location.reload(); });
+                    setStatus('Tersimpan!', '#28a745');
+                    if (ovalHint) ovalHint.textContent = 'Wajah berhasil didaftarkan!';
+                    alert('Berhasil! ' + res.message);
+                    location.reload();
                 } else {
-                    setStatus('✗ Gagal', '#dc3545');
-                    errorMsg.textContent = res.message || 'Gagal menyimpan. Coba lagi.';
-                    retrySection.style.display = '';
+                    setStatus('Gagal', '#dc3545');
+                    if (errorMsg) errorMsg.textContent = res.message || 'Gagal menyimpan.';
+                    if (retrySection) retrySection.style.display = '';
                 }
-            },
-            error: function() {
-                savingOverlay.style.display = 'none';
-                setStatus('✗ Error jaringan', '#dc3545');
-                errorMsg.textContent = 'Koneksi gagal. Pastikan internet aktif.';
-                retrySection.style.display = '';
+            } catch(e) {
+                setStatus('Error respons', '#dc3545');
+                if (errorMsg) errorMsg.textContent = 'Respons server tidak valid.';
+                if (retrySection) retrySection.style.display = '';
             }
+        };
+        xhr.onerror = function() {
+            if (savingOverlay) savingOverlay.style.display = 'none';
+            setStatus('Error jaringan', '#dc3545');
+            if (errorMsg) errorMsg.textContent = 'Koneksi gagal.';
+            if (retrySection) retrySection.style.display = '';
+        };
+        xhr.send('face_photo=' + encodeURIComponent(photoData));
+    }
+
+    /* Flip camera */
+    if (flipBtn) {
+        flipBtn.addEventListener('click', function() {
+            if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+            startCamera(currentFacing === 'user' ? 'environment' : 'user');
         });
     }
 
-    /* ─── Flip camera ─── */
-    flipBtn.addEventListener('click', function() {
-        if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
-        startCamera(currentFacing === 'user' ? 'environment' : 'user');
-    });
-
-    /* ─── File input fallback handler ─── */
-    document.getElementById('file-camera').addEventListener('change', function(e) {
-        var file = e.target.files && e.target.files[0];
-        if (!file) return;
-        setStatus('Memproses foto...', '#ffc107');
-        var img = new Image(), reader = new FileReader();
-        reader.onload = function(ev) {
-            img.onload = function() {
-                var MAX=480, w=img.width, h=img.height;
-                if (w>MAX||h>MAX){ var r=Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
-                var cvs=document.createElement('canvas'); cvs.width=w; cvs.height=h;
-                cvs.getContext('2d').drawImage(img,0,0,w,h);
-                photoData = cvs.toDataURL('image/jpeg', 0.82);
-                canvasEl.width=w; canvasEl.height=h;
-                canvasEl.getContext('2d').drawImage(img,0,0,w,h);
-                lblCamera.style.display = 'none';
-                canvasEl.style.display  = 'block';
-                document.getElementById('panel-file-konfirmasi').style.display = '';
-                setStatus('Foto siap', '#28a745');
+    /* File input fallback */
+    var fileCamera = document.getElementById('file-camera');
+    if (fileCamera) {
+        fileCamera.addEventListener('change', function(e) {
+            var file = e.target.files && e.target.files[0];
+            if (!file) return;
+            setStatus('Memproses foto...', '#ffc107');
+            var img = new Image(), reader = new FileReader();
+            reader.onload = function(ev) {
+                img.onload = function() {
+                    var MAX=480, w=img.width, h=img.height;
+                    if (w>MAX||h>MAX){var r=Math.min(MAX/w,MAX/h);w=Math.round(w*r);h=Math.round(h*r);}
+                    var cvs=document.createElement('canvas'); cvs.width=w; cvs.height=h;
+                    cvs.getContext('2d').drawImage(img,0,0,w,h);
+                    photoData = cvs.toDataURL('image/jpeg', 0.82);
+                    if (lblCamera) lblCamera.style.display='none';
+                    if (canvasEl) { canvasEl.width=w; canvasEl.height=h; canvasEl.getContext('2d').drawImage(img,0,0,w,h); canvasEl.style.display='block'; }
+                    var pk = document.getElementById('panel-file-konfirmasi');
+                    if (pk) pk.style.display = '';
+                    setStatus('Foto siap', '#28a745');
+                };
+                img.src = ev.target.result;
             };
-            img.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-        this.value = '';
-    });
+            reader.readAsDataURL(file);
+            this.value='';
+        });
+    }
 
-    /* ─── Manual save button (file input fallback) ─── */
+    /* File fallback manual save */
     var btnSimpanFile = document.getElementById('btn-simpan-file');
     if (btnSimpanFile) {
         btnSimpanFile.addEventListener('click', function() {
             this.disabled = true;
-            this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+            this.textContent = 'Menyimpan...';
             doAutoSave();
         });
     }
 
-    /* ─── AUTO START ─── */
+    /* AUTO START */
     startCamera('user');
 }
 </script>
+
 <?php
 }
 include_once 'sw-mod/sw-footer.php';
