@@ -6,7 +6,8 @@
 
 $base_path = dirname(__DIR__) . '/';
 include_once $base_path . 'sw-library/sw-config.php';
-include_once $base_path . 'sw-library/sw-function.php';
+// sw-function.php tidak perlu di-include, epm_decode diinline di bawah
+
 
 header('Content-Type: application/json');
 
@@ -20,8 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// COOKIES_MEMBER menyimpan epm_encode(id), decode dulu untuk dapat employee ID
-$decoded_id  = $connection->real_escape_string(epm_decode($_COOKIE['COOKIES_MEMBER']));
+// ─── Decode cookie & validasi sesi ─────────────────────────────────────────
+// COOKIES_MEMBER = epm_encode(id): 2 prefix acak + base64(base64(letter-encoded-id))
+$_raw = $_COOKIE['COOKIES_MEMBER'];
+$_tr  = substr($_raw, 2);                                  // buang 2 char prefix acak
+$_str = base64_decode(base64_decode($_tr));               // double decode
+$_b   = ['Plz','OkX','Ijc','UhV','Ygb','TfN','RdZ','Esx','WaC','Qmv'];
+$_a   = ['0','1','2','3','4','5','6','7','8','9'];
+$decoded_id = (int)str_replace($_b, $_a, $_str);          // letter → angka
+if ($decoded_id < 1) {
+    echo json_encode(['status' => 'error', 'message' => 'Sesi tidak valid, silakan login ulang']);
+    exit;
+}
+$decoded_id  = $connection->real_escape_string($decoded_id);
 $query_user  = "SELECT id FROM employees WHERE id = '$decoded_id' LIMIT 1";
 $result_user = $connection->query($query_user);
 
