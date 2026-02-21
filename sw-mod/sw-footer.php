@@ -63,9 +63,7 @@ echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/webcame/webcam-easy.min.js"></script>';
 if($mod =='absent'){
-echo'
-<!-- face-api.js untuk verifikasi absen -->
-<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>';
+// face-api.js digantikan oleh Python face-service — tidak perlu load CDN
 }
 
 if($mod =='history' OR $mod=='cuty' OR $mod=='izin'){
@@ -180,164 +178,80 @@ if ($mod =='absent'){?>
                 }
 
             // ================================================
-            // FACE VERIFICATION SEBELUM KIRIM ABSEN
+            // FACE VERIFICATION VIA PYTHON API
             // ================================================
-            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
-            const storedDescriptorRaw = <?php echo !empty($row_user['face_descriptor']) ? $row_user['face_descriptor'] : 'null'; ?>;
+            const hasFaceData = <?php echo !empty($row_user['face_descriptor']) ? 'true' : 'false'; ?>;
 
-            // Overlay canvas untuk real-time face detection
-            const overlayCanvas = document.getElementById('canvas');
-            let faceApiReady = false;
-            let detectionInterval = null;
-            let verifiedDescriptor = null;
+            $(".take-photo").click(function () {
+                if (!hasFaceData) {
+                    swal({
+                        title: 'Wajah Belum Terdaftar!',
+                        text: 'Daftarkan wajah Anda terlebih dahulu sebelum absen.',
+                        icon: 'warning',
+                        buttons: { cancel: 'Nanti', confirm: { text: 'Daftar Sekarang', closeModal: true } }
+                    }).then(function(ok){ if(ok) location.href='./wajah'; });
+                    return;
+                }
 
-            // Load face-api models
-            Promise.all([
-                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-                faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
-                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-            ]).then(() => {
-                faceApiReady = true;
-                console.log('face-api.js ready');
-                // Mulai deteksi wajah real-time overlay
-                startFaceOverlay();
-            }).catch(e => {
-                console.error('face-api load error:', e);
-            });
+                beforeTakePhoto();
 
-            function startFaceOverlay() {
-                const options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
-                const webcamEl = document.getElementById('webcam');
-                const ctx = overlayCanvas.getContext('2d');
+                // Ambil snapshot dari webcam
+                var picture = webcam.snap();
+                afterTakePhoto();
 
-                detectionInterval = setInterval(async () => {
-                    if (!webcamEl || webcamEl.paused || webcamEl.ended || !faceApiReady) return;
-                    if (overlayCanvas.classList.contains('d-none')) {
-                        overlayCanvas.style.display = 'none';
-                    }
-                    // Resize canvas sesuai video
-                    if (overlayCanvas.width !== webcamEl.videoWidth) {
-                        overlayCanvas.width  = webcamEl.videoWidth  || 640;
-                        overlayCanvas.height = webcamEl.videoHeight || 480;
-                    }
-                    const dets = await faceapi.detectAllFaces(webcamEl, options);
-                    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-                    if (dets.length > 0) {
-                        const resized = faceapi.resizeResults(dets, { width: overlayCanvas.width, height: overlayCanvas.height });
-                        resized.forEach(det => {
-                            const box = det.box;
-                            ctx.strokeStyle = '#28a745';
-                            ctx.lineWidth   = 3;
-                            ctx.strokeRect(box.x, box.y, box.width, box.height);
-                            ctx.fillStyle = 'rgba(40,167,69,0.6)';
-                            ctx.fillRect(box.x, box.y - 20, 110, 20);
-                            ctx.fillStyle = '#fff';
-                            ctx.font = '12px Arial';
-                            ctx.fillText('Wajah Terdeteksi', box.x + 4, box.y - 4);
-                        });
-                    }
-                }, 300);
-            }
+                // Tampilkan spinner verifikasi
+                swal({ title: 'Memverifikasi Wajah...', text: 'AI Python sedang memproses...', icon: 'info', button: false });
 
-            // ================================================
-            var faceVerified = false; // flag verifikasi
-
-                $(".take-photo").click(function () {
-                    if (!storedDescriptorRaw) {
-                        swal({
-                            title: 'Wajah Belum Terdaftar!',
-                            text: 'Daftarkan wajah Anda terlebih dahulu sebelum absen.',
-                            icon: 'warning',
-                            buttons: {
-                                cancel: 'Nanti',
-                                confirm: { text: 'Daftar Sekarang', closeModal: true }
-                            }
-                        }).then(function(ok){ if(ok) location.href='./wajah'; });
-                        return;
-                    }
-
-                    if (!faceApiReady) {
-                        swal({ title: 'Mohon Tunggu', text: 'AI verifikasi wajah sedang dimuat...', icon: 'info', timer: 2000 });
-                        return;
-                    }
-
-                    // Stop live overlay
-                    if (detectionInterval) clearInterval(detectionInterval);
-
-                    beforeTakePhoto();
-
-                    const webcamEl = document.getElementById('webcam');
-                    const options  = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.4 });
-
-                    faceapi.detectSingleFace(webcamEl, options)
-                        .withFaceLandmarks(true)
-                        .withFaceDescriptor()
-                        .then(function(detection) {
-                            if (!detection) {
-                                swal({ title: 'Wajah Tidak Terdeteksi!', text: 'Pastikan wajah Anda terlihat jelas di kamera.', icon: 'warning' });
-                                removeCapture();
-                                startFaceOverlay();
-                                return;
-                            }
-
-                            // Bandingkan descriptor wajah
-                            const liveDescriptor   = detection.descriptor;
-                            const stored           = new Float32Array(storedDescriptorRaw);
-                            const distance         = faceapi.euclideanDistance(liveDescriptor, stored);
-                            console.log('Face distance:', distance);
-
-                            const THRESHOLD = 0.50; // 0.50 = keseimbangan security & kenyamanan
-                            if (distance > THRESHOLD) {
-                                swal({
-                                    title: 'Wajah Tidak Dikenali!',
-                                    text: 'Wajah Anda tidak cocok dengan data terdaftar (jarak: '+distance.toFixed(3)+'). Pastikan pencahayaan baik dan wajah terlihat jelas.',
-                                    icon: 'error'
-                                });
-                                removeCapture();
-                                startFaceOverlay();
-                                return;
-                            }
-
-                            // ✅ Verifikasi berhasil!
-                            faceVerified = true;
-                            let picture = webcam.snap(300, 300);
-                            afterTakePhoto();
-
-                            var img  = new Image();
-                            img.src  = picture;
-
-                            var dataString = 'img=' + img.src +
-                                             '&latitude=' + latitude +
-                                             '&radius='   + jarak +
-                                             '&shift='    + shift +
-                                             '&face_verified=1';
-
-                            $.ajax({
-                                type: 'POST',
-                                url:  './sw-proses?action=absent',
-                                data: dataString,
-                                success: function(data) {
-                                    var results  = data.split('/');
-                                    var res0 = results[0];
-                                    var res1 = results[1];
-                                    if (res0 === 'success') {
-                                        swal({ title: 'Berhasil!', text: res1, icon: 'success', timer: 2000 });
-                                        setTimeout("location.href = './'", 2000);
-                                    } else {
-                                        swal({ title: 'Oops!', text: data, icon: 'error' });
-                                        removeCapture();
-                                        startFaceOverlay();
-                                    }
-                                }
+                // Kirim ke PHP endpoint yang memanggil Python face-service
+                $.ajax({
+                    type: 'POST',
+                    url:  './action/face-verify.php',
+                    data: { live_photo: picture },
+                    dataType: 'json',
+                    timeout: 30000,
+                    success: function(res) {
+                        if (!res.match) {
+                            swal({
+                                title: 'Wajah Tidak Cocok!',
+                                text:  res.message + ' (jarak: ' + res.distance + ')',
+                                icon:  'error'
                             });
-                        })
-                        .catch(function(e) {
-                            console.error('Face detection error:', e);
-                            swal({ title: 'Error', text: 'Gagal memproses wajah: ' + e.message, icon: 'error' });
                             removeCapture();
-                            startFaceOverlay();
+                            return;
+                        }
+
+                        // ✅ Verifikasi berhasil — kirim absen
+                        swal.close();
+                        var dataString = 'img='      + picture +
+                                         '&latitude=' + latitude +
+                                         '&radius='   + jarak +
+                                         '&shift='    + shift +
+                                         '&face_verified=1' +
+                                         '&face_confidence=' + res.confidence;
+
+                        $.ajax({
+                            type: 'POST',
+                            url:  './sw-proses?action=absent',
+                            data: dataString,
+                            success: function(data) {
+                                var parts = data.split('/');
+                                if (parts[0] === 'success') {
+                                    swal({ title: 'Berhasil!', text: parts[1], icon: 'success', timer: 2000 });
+                                    setTimeout("location.href = './'", 2000);
+                                } else {
+                                    swal({ title: 'Oops!', text: data, icon: 'error' });
+                                    removeCapture();
+                                }
+                            }
                         });
+                    },
+                    error: function(xhr) {
+                        var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal memverifikasi wajah';
+                        swal({ title: 'Error Verifikasi!', text: msg, icon: 'error' });
+                        removeCapture();
+                    }
                 });
+            });
 
 
                 function beforeTakePhoto(){
@@ -367,7 +281,6 @@ if ($mod =='absent'){?>
                     $('#exit-app').addClass('d-none');
                     $('.resume-camera').addClass('d-none');
                     $('.cameraFlip').removeClass('d-none');
-                    
                 }
 
                 $(".resume-camera").click(function () {

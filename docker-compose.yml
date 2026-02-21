@@ -7,6 +7,10 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      face-service:
+        condition: service_healthy
+    environment:
+      FACE_SERVICE_URL: http://face-service:8000
     networks:
       - absensi-network
 
@@ -44,6 +48,30 @@ services:
         condition: service_healthy
     networks:
       - absensi-network
+
+  # ── Python Face Recognition Service ───────────────────────────────────────
+  face-service:
+    build:
+      context: ./face-service
+      dockerfile: Dockerfile
+    container_name: absensi-face
+    # Tidak diexpose ke public — hanya internal network
+    expose:
+      - "8000"
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s # Beri waktu untuk load model face_recognition
+    networks:
+      - absensi-network
+    # Jika butuh GPU (opsional, hapus jika tidak ada)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - capabilities: [gpu]
 
 volumes:
   mysql_data:
