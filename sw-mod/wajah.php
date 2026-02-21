@@ -103,31 +103,22 @@ echo'
                     <ion-icon name="camera-reverse-outline"></ion-icon>
                 </button>
 
-                <!-- Overlay Tombol Start -->
-                <div id="cam-start-overlay" style="
+                <!-- Tombol Ambil Foto — bekerja di SEMUA device & browser tanpa getUserMedia -->
+                <label for="file-camera" style="
                     position:absolute;top:0;left:0;width:100%;height:100%;
-                    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
-                    background:rgba(0,0,0,0.6); z-index:10;">
+                    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+                    background:rgba(0,0,0,0.5); z-index:10; cursor:pointer;" id="lbl-camera">
 
-                    <!-- Tombol live camera -->
-                    <button id="btn-start-cam" type="button" class="btn btn-success"
-                        style="padding:14px 32px; border-radius:30px; font-size:16px; font-weight:600;
-                               box-shadow:0 4px 20px rgba(0,0,0,0.4); min-width:220px;">
-                        <ion-icon name="videocam-outline" style="vertical-align:middle;"></ion-icon>
-                        &nbsp;Buka Kamera Live
-                    </button>
-
-                    <span style="color:rgba(255,255,255,0.5); font-size:12px;">atau pilih foto dari galeri</span>
-
-                    <!-- Fallback: file input -->
-                    <label for="file-camera" class="btn btn-outline-light btn-sm"
-                        style="border-radius:20px; cursor:pointer; margin:0; font-size:13px;">
-                        <ion-icon name="image-outline" style="vertical-align:middle;"></ion-icon>
-                        &nbsp;Pilih dari Galeri
-                    </label>
-                    <input type="file" id="file-camera" accept="image/*"
-                        style="display:none;">
-                </div>
+                    <span class="btn btn-success" style="
+                        padding:16px 36px;border-radius:30px;font-size:17px;font-weight:700;
+                        box-shadow:0 6px 24px rgba(0,0,0,0.5);pointer-events:none;min-width:220px;
+                        display:flex;align-items:center;justify-content:center;gap:10px;">
+                        <ion-icon name="camera-outline" style="font-size:22px;"></ion-icon>
+                        Ambil Foto Wajah
+                    </span>
+                    <span style="color:rgba(255,255,255,0.65);font-size:13px;">Tap untuk membuka kamera</span>
+                </label>
+                <input type="file" id="file-camera" accept="image/*" capture="user" style="display:none;">
 
                 <!-- Flash -->
                 <div id="flash-wajah" style="
@@ -194,119 +185,75 @@ echo'
 ';
 ?>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-
-    /* ===== ELEMEN ===== */
-    var videoEl      = document.getElementById('face-video');
-    var canvasEl     = document.getElementById('face-canvas');
-    var preview      = document.getElementById('face-preview');
+(function() {
+    var photoData    = null;
     var camDot       = document.getElementById('cam-dot');
     var camText      = document.getElementById('cam-text');
-    var flash        = document.getElementById('flash-wajah');
     var faceGuide    = document.getElementById('face-guide');
-    var startOverlay = document.getElementById('cam-start-overlay');
-    var flipBtn      = document.getElementById('flip-camera');
+    var lblCamera    = document.getElementById('lbl-camera');
+    var previewEl    = document.getElementById('face-preview');
     var panelAmbil      = document.getElementById('panel-ambil');
     var panelKonfirmasi = document.getElementById('panel-konfirmasi');
-
-    var photoData = null;
-
-    /* ===== WEBCAM-EASY (sama dgn halaman absent) ===== */
-    var webcam = new Webcam(videoEl, 'user', canvasEl);
 
     function setStatus(text, color) {
         camText.textContent     = text;
         camDot.style.background = color || '#6c757d';
     }
 
-    function showKonfirmasi() {
-        panelAmbil.style.display      = 'none';
-        panelKonfirmasi.style.display = '';
-        faceGuide.style.display       = 'none';
-    }
-
-    function resetAll() {
-        webcam.stop();
-        videoEl.style.display  = 'none';
-        canvasEl.style.display = 'none';
-        preview.style.display  = 'none';
-        faceGuide.style.display = '';
-        startOverlay.style.display = 'flex';
-        flipBtn.style.display = 'none';
-        panelAmbil.style.display      = 'none';
-        panelKonfirmasi.style.display = 'none';
-        photoData = null;
-        setStatus('Siap', '#6c757d');
-    }
-
-    /* ===== BUKA KAMERA (webcam-easy) ===== */
-    function startCamera() {
-        setStatus('Memulai kamera...', '#ffc107');
-        startOverlay.style.display = 'none';
-
-        webcam.stream()
-        .then(function(result) {
-            videoEl.style.display = 'block';
-            flipBtn.style.display = 'flex';
-            panelAmbil.style.display = '';
-            setStatus('Kamera Aktif ✓', '#28a745');
-        })
-        .catch(function(err) {
-            var msg = (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
-                ? 'Izin kamera ditolak — klik ikon 🔒 di address bar'
-                : 'Kamera gagal: ' + (err.name || err);
-            setStatus(msg, '#dc3545');
-            startOverlay.style.display = 'flex';
-        });
-    }
-
-    /* Tombol Buka Kamera */
-    document.getElementById('btn-start-cam').addEventListener('click', startCamera);
-
-    /* Tombol Flip */
-    flipBtn.addEventListener('click', function() {
-        webcam.flip();
-        webcam.stream();
-    });
-
-    /* ===== AMBIL FOTO (live) ===== */
-    document.getElementById('btn-ambil').addEventListener('click', function() {
-        flash.style.opacity = '1';
-        setTimeout(function() { flash.style.opacity = '0'; }, 150);
-
-        photoData = webcam.snap();   // base64 JPEG — sama dgn absent
-        webcam.stop();
-        videoEl.style.display  = 'none';
-        canvasEl.style.display = 'block';
-        flipBtn.style.display  = 'none';
-        setStatus('Foto Diambil', '#17a2b8');
-        showKonfirmasi();
-    });
-
-    /* ===== MODE B: PILIH DARI GALERI ===== */
+    /* ─── FILE INPUT: buka kamera native (mobile) atau file picker (desktop) ─── */
     document.getElementById('file-camera').addEventListener('change', function(e) {
         var file = e.target.files && e.target.files[0];
         if (!file) return;
 
+        setStatus('Memproses foto...', '#ffc107');
+
+        // Resize ke max 800px sebelum kirim supaya tidak terlalu besar
+        var img    = new Image();
         var reader = new FileReader();
+
         reader.onload = function(ev) {
-            photoData = ev.target.result;
-            preview.src = photoData;
-            preview.style.display  = 'block';
-            canvasEl.style.display = 'none';
-            videoEl.style.display  = 'none';
-            startOverlay.style.display = 'none';
-            setStatus('Foto siap ✓', '#28a745');
-            showKonfirmasi();
+            img.onload = function() {
+                var MAX  = 800;
+                var w    = img.width,  h = img.height;
+                if (w > MAX || h > MAX) {
+                    var ratio = Math.min(MAX / w, MAX / h);
+                    w = Math.round(w * ratio);
+                    h = Math.round(h * ratio);
+                }
+                var cvs = document.createElement('canvas');
+                cvs.width  = w;
+                cvs.height = h;
+                cvs.getContext('2d').drawImage(img, 0, 0, w, h);
+                photoData = cvs.toDataURL('image/jpeg', 0.88);
+
+                /* Tampilkan preview */
+                previewEl.src = photoData;
+                previewEl.style.display = 'block';
+                lblCamera.style.display = 'none';
+                if (faceGuide) faceGuide.style.display = 'none';
+
+                panelAmbil.style.display      = 'none';
+                panelKonfirmasi.style.display = '';
+                setStatus('Foto siap ✓', '#28a745');
+            };
+            img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
-        this.value = '';
+        this.value = ''; // reset supaya bisa pilih ulang
     });
 
-    /* ===== ULANG ===== */
-    document.getElementById('btn-ulang').addEventListener('click', resetAll);
+    /* ─── ULANG ─── */
+    document.getElementById('btn-ulang').addEventListener('click', function() {
+        photoData = null;
+        previewEl.style.display = 'none';
+        lblCamera.style.display = 'flex';
+        if (faceGuide) faceGuide.style.display = '';
+        panelAmbil.style.display      = 'none';
+        panelKonfirmasi.style.display = 'none';
+        setStatus('Siap', '#6c757d');
+    });
 
-    /* ===== SIMPAN ===== */
+    /* ─── SIMPAN ─── */
     document.getElementById('btn-simpan').addEventListener('click', function() {
         if (!photoData) return;
         var btn = this;
@@ -336,9 +283,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    /* ===== INIT ===== */
     setStatus('Siap', '#6c757d');
-});
+}());
 </script>
 <?php
 }
