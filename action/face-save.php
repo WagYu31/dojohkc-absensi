@@ -93,14 +93,21 @@ $colCheck = $connection->query("
     LIMIT 1
 ");
 if ($colCheck) {
-    $colRow = $colCheck->fetch_assoc();
-    $colType = strtolower($colRow['COLUMN_TYPE'] ?? '');
-    if (strpos($colType, 'mediumtext') === false && strpos($colType, 'longtext') === false) {
-        // Masih TEXT atau TINYTEXT — upgrade ke MEDIUMTEXT otomatis
+    $colRow  = $colCheck->fetch_assoc();
+    if (!$colRow) {
+        // Kolom belum ada sama sekali — ADD COLUMN
         $connection->query("ALTER TABLE `employees`
-            MODIFY COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci");
+            ADD COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci");
+    } else {
+        $colType = strtolower($colRow['COLUMN_TYPE'] ?? '');
+        if (strpos($colType, 'mediumtext') === false && strpos($colType, 'longtext') === false) {
+            // Kolom ada tapi masih TEXT — upgrade ke MEDIUMTEXT
+            $connection->query("ALTER TABLE `employees`
+                MODIFY COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci");
+        }
     }
 }
+
 
 // ─── Simpan foto ke database ───────────────────────────────────────────────
 // Format: "facepp:<base64>" agar bisa dibedakan dari format lama

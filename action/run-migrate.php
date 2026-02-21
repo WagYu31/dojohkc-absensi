@@ -1,7 +1,6 @@
 <?php
 /**
- * run-migrate.php
- * Jalankan 1x untuk memperbesar kolom face_descriptor dari TEXT ke MEDIUMTEXT.
+ * run-migrate.php — jalankan 1x untuk setup kolom face_descriptor
  * Akses di browser: https://dojohkc.com/action/run-migrate.php
  * HAPUS FILE INI setelah migration berhasil!
  */
@@ -10,35 +9,47 @@ include_once $base_path . 'sw-library/sw-config.php';
 
 header('Content-Type: text/plain; charset=utf-8');
 
-// Cek kolom sekarang
+// Cek apakah kolom sudah ada
 $check = $connection->query("
     SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS
     WHERE TABLE_SCHEMA = DATABASE()
       AND TABLE_NAME   = 'employees'
       AND COLUMN_NAME  = 'face_descriptor'
+    LIMIT 1
 ");
 
 if (!$check) {
-    die("ERROR: Tidak bisa cek kolom: " . $connection->error);
+    die("ERROR cek kolom: " . $connection->error);
 }
 
 $row = $check->fetch_assoc();
-$current_type = strtolower($row['COLUMN_TYPE'] ?? '');
 
-echo "Kolom saat ini : " . strtoupper($current_type) . "\n";
-
-if (strpos($current_type, 'mediumtext') !== false || strpos($current_type, 'longtext') !== false) {
-    echo "Status         : OK - sudah MEDIUMTEXT/LONGTEXT, tidak perlu migrasi.\n";
-    exit;
-}
-
-// Jalankan ALTER
-$sql = "ALTER TABLE `employees`
-        MODIFY COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci";
-
-if ($connection->query($sql)) {
-    echo "Status         : BERHASIL - face_descriptor sekarang MEDIUMTEXT\n";
-    echo "Silakan hapus file ini: action/run-migrate.php\n";
+if (!$row) {
+    // Kolom belum ada sama sekali — ADD COLUMN
+    echo "Kolom face_descriptor : BELUM ADA\n";
+    $sql = "ALTER TABLE `employees`
+            ADD COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci";
+    if ($connection->query($sql)) {
+        echo "Status               : BERHASIL ditambahkan (MEDIUMTEXT)\n";
+    } else {
+        echo "ERROR ADD            : " . $connection->error . "\n";
+    }
 } else {
-    echo "ERROR          : " . $connection->error . "\n";
+    $current = strtolower($row['COLUMN_TYPE']);
+    echo "Kolom saat ini       : " . strtoupper($current) . "\n";
+
+    if (strpos($current, 'mediumtext') !== false || strpos($current, 'longtext') !== false) {
+        echo "Status               : Sudah OK (tidak perlu migrasi)\n";
+    } else {
+        // Ada tapi masih TEXT — MODIFY ke MEDIUMTEXT
+        $sql = "ALTER TABLE `employees`
+                MODIFY COLUMN `face_descriptor` MEDIUMTEXT COLLATE utf8mb4_unicode_ci";
+        if ($connection->query($sql)) {
+            echo "Status               : BERHASIL diubah ke MEDIUMTEXT\n";
+        } else {
+            echo "ERROR MODIFY         : " . $connection->error . "\n";
+        }
+    }
 }
+
+echo "\nSelesai. Silakan hapus: action/run-migrate.php\n";
