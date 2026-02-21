@@ -185,13 +185,19 @@ echo'
 ';
 ?>
 <script>
-(function() {
-    var photoData    = null;
-    var camDot       = document.getElementById('cam-dot');
-    var camText      = document.getElementById('cam-text');
-    var faceGuide    = document.getElementById('face-guide');
-    var lblCamera    = document.getElementById('lbl-camera');
-    var previewEl    = document.getElementById('face-preview');
+(function () {
+    var photoData       = null;
+    var stream          = null;
+    var currentFacing   = 'user';          // 'user' = depan, 'environment' = belakang
+
+    var videoEl         = document.getElementById('face-video');
+    var canvasEl        = document.getElementById('face-canvas');
+    var previewEl       = document.getElementById('face-preview');
+    var faceGuide       = document.getElementById('face-guide');
+    var lblCamera       = document.getElementById('lbl-camera');
+    var flipBtn         = document.getElementById('flip-camera');
+    var camDot          = document.getElementById('cam-dot');
+    var camText         = document.getElementById('cam-text');
     var panelAmbil      = document.getElementById('panel-ambil');
     var panelKonfirmasi = document.getElementById('panel-konfirmasi');
 
@@ -200,38 +206,115 @@ echo'
         camDot.style.background = color || '#6c757d';
     }
 
-    /* ─── FILE INPUT: buka kamera native (mobile) atau file picker (desktop) ─── */
+    /* ─── Mulai kamera live ─── */
+    function startCamera(facing) {
+        if (stream) {
+            stream.getTracks().forEach(function(t){ t.stop(); });
+            stream = null;
+        }
+        currentFacing = facing || 'user';
+        setStatus('Memuat kamera...', '#ffc107');
+
+        var constraints = {
+            video: { facingMode: currentFacing, width: { ideal: 640 }, height: { ideal: 480 } },
+            audio: false
+        };
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showFileFallback();
+            return;
+        }
+
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(function(s) {
+                stream           = s;
+                videoEl.srcObject = s;
+                videoEl.style.display = 'block';
+                lblCamera.style.display = 'none';
+                faceGuide.style.display = '';
+                flipBtn.style.display   = 'flex';
+                panelAmbil.style.display      = '';     // tampilkan tombol Ambil Foto
+                panelKonfirmasi.style.display = 'none';
+                canvasEl.style.display  = 'none';
+                previewEl.style.display = 'none';
+                setStatus('Kamera aktif', '#28a745');
+            })
+            .catch(function(err) {
+                console.warn('getUserMedia gagal:', err);
+                showFileFallback();
+            });
+    }
+
+    /* ─── Fallback: file input (jika getUserMedia tidak bisa) ─── */
+    function showFileFallback() {
+        videoEl.style.display   = 'none';
+        flipBtn.style.display   = 'none';
+        lblCamera.style.display = 'flex';
+        panelAmbil.style.display      = 'none';
+        panelKonfirmasi.style.display = 'none';
+        setStatus('Tap untuk foto', '#6c757d');
+    }
+
+    /* ─── AUTO START saat halaman load ─── */
+    startCamera('user');
+
+    /* ─── Flip kamera (depan ↔ belakang) ─── */
+    flipBtn.addEventListener('click', function() {
+        startCamera(currentFacing === 'user' ? 'environment' : 'user');
+    });
+
+    /* ─── AMBIL FOTO dari live video ─── */
+    document.getElementById('btn-ambil').addEventListener('click', function() {
+        if (!stream || !videoEl.videoWidth) {
+            setStatus('Kamera belum siap', '#dc3545');
+            return;
+        }
+        var MAX = 480;
+        var vw  = videoEl.videoWidth,  vh = videoEl.videoHeight;
+        var ratio = Math.min(MAX / vw, MAX / vh);
+        var w = Math.round(vw * ratio), h = Math.round(vh * ratio);
+
+        canvasEl.width  = w;
+        canvasEl.height = h;
+        canvasEl.getContext('2d').drawImage(videoEl, 0, 0, w, h);
+        photoData = canvasEl.toDataURL('image/jpeg', 0.82);
+
+        /* Flash effect */
+        var flash = document.getElementById('flash-wajah');
+        flash.style.opacity = '1';
+        setTimeout(function(){ flash.style.opacity = '0'; }, 150);
+
+        /* Berhenti streaming & tampilkan preview di canvas */
+        stream.getTracks().forEach(function(t){ t.stop(); });
+        stream = null;
+        videoEl.style.display  = 'none';
+        canvasEl.style.display = 'block';
+        faceGuide.style.display= '';
+        flipBtn.style.display  = 'none';
+
+        panelAmbil.style.display      = 'none';
+        panelKonfirmasi.style.display = '';
+        setStatus('Foto siap ✓', '#28a745');
+    });
+
+    /* ─── FILE INPUT (fallback): tetap berfungsi ─── */
     document.getElementById('file-camera').addEventListener('change', function(e) {
         var file = e.target.files && e.target.files[0];
         if (!file) return;
-
-        setStatus('Memproses foto...', '#ffc107');
-
-        // Resize ke max 480px supaya base64 < 50KB (aman untuk DB)
-        var img    = new Image();
-        var reader = new FileReader();
-
+        setStatus('Memproses...', '#ffc107');
+        var img = new Image(), reader = new FileReader();
         reader.onload = function(ev) {
             img.onload = function() {
-                var MAX  = 480;
-                var w    = img.width,  h = img.height;
-                if (w > MAX || h > MAX) {
-                    var ratio = Math.min(MAX / w, MAX / h);
-                    w = Math.round(w * ratio);
-                    h = Math.round(h * ratio);
-                }
-                var cvs = document.createElement('canvas');
-                cvs.width  = w;
-                cvs.height = h;
-                cvs.getContext('2d').drawImage(img, 0, 0, w, h);
-                photoData = cvs.toDataURL('image/jpeg', 0.80);
-
-                /* Tampilkan preview */
+                var MAX = 480, w = img.width, h = img.height;
+                if (w > MAX || h > MAX) { var r=Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
+                var cvs=document.createElement('canvas'); cvs.width=w; cvs.height=h;
+                cvs.getContext('2d').drawImage(img,0,0,w,h);
+                photoData = cvs.toDataURL('image/jpeg', 0.82);
                 previewEl.src = photoData;
                 previewEl.style.display = 'block';
+                videoEl.style.display   = 'none';
+                canvasEl.style.display  = 'none';
                 lblCamera.style.display = 'none';
-                if (faceGuide) faceGuide.style.display = 'none';
-
                 panelAmbil.style.display      = 'none';
                 panelKonfirmasi.style.display = '';
                 setStatus('Foto siap ✓', '#28a745');
@@ -239,18 +322,15 @@ echo'
             img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
-        this.value = ''; // reset supaya bisa pilih ulang
+        this.value = '';
     });
 
-    /* ─── ULANG ─── */
+    /* ─── ULANG: restart kamera ─── */
     document.getElementById('btn-ulang').addEventListener('click', function() {
         photoData = null;
         previewEl.style.display = 'none';
-        lblCamera.style.display = 'flex';
-        if (faceGuide) faceGuide.style.display = '';
-        panelAmbil.style.display      = 'none';
-        panelKonfirmasi.style.display = 'none';
-        setStatus('Siap', '#6c757d');
+        canvasEl.style.display  = 'none';
+        startCamera(currentFacing);
     });
 
     /* ─── SIMPAN ─── */
@@ -267,26 +347,26 @@ echo'
             dataType: 'json',
             success: function(res) {
                 if (res.status === 'success') {
-                    swal({ title: 'Berhasil!', text: res.message, icon: 'success', timer: 2500 })
+                    Swal.fire({ title: 'Berhasil!', text: res.message, icon: 'success', timer: 2500, showConfirmButton: false })
                         .then(function() { location.reload(); });
                 } else {
-                    swal({ title: 'Gagal!', text: res.message, icon: 'error' });
+                    Swal.fire({ title: 'Gagal!', text: res.message, icon: 'error' });
                     btn.disabled = false;
                     btn.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon> Simpan';
                 }
             },
             error: function() {
-                swal({ title: 'Error!', text: 'Koneksi gagal. Coba lagi.', icon: 'error' });
+                Swal.fire({ title: 'Error!', text: 'Koneksi gagal. Coba lagi.', icon: 'error' });
                 btn.disabled = false;
                 btn.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon> Simpan';
             }
         });
     });
 
-    setStatus('Siap', '#6c757d');
 }());
 </script>
 <?php
 }
 include_once 'sw-mod/sw-footer.php';
 } ?>
+
