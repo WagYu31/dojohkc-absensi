@@ -207,13 +207,13 @@ echo'
 
         setStatus('Memproses foto...', '#ffc107');
 
-        // Resize ke max 800px sebelum kirim supaya tidak terlalu besar
+        // Resize ke max 480px supaya base64 < 50KB (aman untuk DB)
         var img    = new Image();
         var reader = new FileReader();
 
         reader.onload = function(ev) {
             img.onload = function() {
-                var MAX  = 800;
+                var MAX  = 480;
                 var w    = img.width,  h = img.height;
                 if (w > MAX || h > MAX) {
                     var ratio = Math.min(MAX / w, MAX / h);
@@ -224,7 +224,7 @@ echo'
                 cvs.width  = w;
                 cvs.height = h;
                 cvs.getContext('2d').drawImage(img, 0, 0, w, h);
-                photoData = cvs.toDataURL('image/jpeg', 0.88);
+                photoData = cvs.toDataURL('image/jpeg', 0.80);
 
                 /* Tampilkan preview */
                 previewEl.src = photoData;
