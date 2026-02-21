@@ -63,7 +63,9 @@ echo'
 <script src="'.$base_url.'sw-mod/sw-assets/js/sweetalert.min.js"></script>
 <script src="'.$base_url.'sw-mod/sw-assets/js/webcame/webcam-easy.min.js"></script>';
 if($mod =='absent'){
-// face-api.js digantikan oleh Python face-service — tidak perlu load CDN
+echo'
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+';
 }
 
 if($mod =='history' OR $mod=='cuty' OR $mod=='izin'){
@@ -177,32 +179,125 @@ if ($mod =='absent'){?>
                     //$('body').css('overflow-y','hidden');
                 }
 
-            // ================================================
-            // FACE VERIFICATION VIA PYTHON API
-            // ================================================
+            // ================================================================
+            // AUTO FACE DETECTION (Gojek Style - face-api.js TinyFaceDetector)
+            // ================================================================
             const hasFaceData = <?php echo !empty($row_user['face_descriptor']) ? 'true' : 'false'; ?>;
+            const MODEL_URL   = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
 
-            $(".take-photo").click(function () {
+            var _faceApiReady  = false;
+            var _detecting     = false;
+            var _capturedDone  = false;
+            var _cntTimer      = null;
+            var _cntVal        = 0;
+
+            // ─── Elemen overlay status ────────────────────────────────────
+            var _statusEl = document.createElement('div');
+            _statusEl.id  = 'fd-status';
+            _statusEl.style.cssText = [
+                'position:absolute','top:8px','left:50%','transform:translateX(-50%)',
+                'background:rgba(0,0,0,0.65)','color:#fff','padding:6px 16px',
+                'border-radius:20px','font-size:13px','font-weight:600',
+                'z-index:20','text-align:center','white-space:nowrap',
+                'backdrop-filter:blur(4px)','transition:background .3s'
+            ].join(';');
+            _statusEl.innerHTML = '⏳ Memuat model...';
+
+            function _mountOverlay() {
+                var container = document.querySelector('.webcam-container') ||
+                                document.querySelector('.md-content')        ||
+                                webcamElement.parentElement;
+                if (container) {
+                    container.style.position = 'relative';
+                    container.appendChild(_statusEl);
+                }
+            }
+
+            function _setStatus(icon, text, color) {
+                _statusEl.innerHTML = icon + ' ' + text;
+                _statusEl.style.background = color || 'rgba(0,0,0,0.65)';
+            }
+
+            // ─── Load face-api models ─────────────────────────────────────
+            faceapi.nets.tinyFaceDetector
+                .loadFromUri(MODEL_URL)
+                .then(function() {
+                    _faceApiReady = true;
+                    console.log('[FaceAPI] model ready');
+                    _setStatus('🔍', 'Posisikan wajah Anda...', 'rgba(0,0,0,0.65)');
+                })
+                .catch(function(e) {
+                    console.warn('[FaceAPI] model load fail, fallback to manual', e);
+                    _setStatus('📷', 'Tap tombol untuk absen', 'rgba(0,0,0,0.65)');
+                });
+
+            // ─── Detection loop ───────────────────────────────────────────
+            function _runDetect() {
+                if (_capturedDone || !_detecting) return;
+
+                faceapi.detectAllFaces(
+                    webcamElement,
+                    new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.5 })
+                ).then(function(detections) {
+                    if (_capturedDone || !_detecting) return;
+
+                    if (detections.length === 1) {
+                        // Face OK
+                        if (!_cntTimer) { _startCountdown(); }
+                    } else {
+                        _cancelCountdown();
+                        if (detections.length === 0) {
+                            _setStatus('🔍', 'Posisikan wajah Anda dalam oval...', 'rgba(0,0,0,0.65)');
+                        } else {
+                            _setStatus('⚠️', 'Hanya 1 orang ya!', 'rgba(180,0,0,0.75)');
+                        }
+                    }
+
+                    if (!_capturedDone) setTimeout(_runDetect, 350);
+                }).catch(function() {
+                    if (!_capturedDone) setTimeout(_runDetect, 600);
+                });
+            }
+
+            function _startCountdown() {
+                _cntVal = 3;
+                _setStatus('✅', 'Wajah OK! Otomatis: ' + _cntVal + 's', 'rgba(22,163,74,0.85)');
+                _cntTimer = setInterval(function() {
+                    _cntVal--;
+                    if (_cntVal <= 0) {
+                        clearInterval(_cntTimer); _cntTimer = null;
+                        if (!_capturedDone) { _capturedDone = true; _doAutoCapture(); }
+                    } else {
+                        _setStatus('✅', 'Wajah OK! Otomatis: ' + _cntVal + 's', 'rgba(22,163,74,0.85)');
+                    }
+                }, 1000);
+            }
+
+            function _cancelCountdown() {
+                if (_cntTimer) { clearInterval(_cntTimer); _cntTimer = null; }
+            }
+
+            // ─── Auto capture & verify ────────────────────────────────────
+            function _doAutoCapture() {
+                _detecting = false;
+                _setStatus('📸', 'Mengambil foto...', 'rgba(37,99,235,0.85)');
+
                 if (!hasFaceData) {
                     swal({
                         title: 'Wajah Belum Terdaftar!',
-                        text: 'Daftarkan wajah Anda terlebih dahulu sebelum absen.',
-                        icon: 'warning',
+                        text:  'Daftarkan wajah Anda terlebih dahulu.',
+                        icon:  'warning',
                         buttons: { cancel: 'Nanti', confirm: { text: 'Daftar Sekarang', closeModal: true } }
-                    }).then(function(ok){ if(ok) location.href='./wajah'; });
+                    }).then(function(ok) { if (ok) location.href = './wajah'; });
                     return;
                 }
 
                 beforeTakePhoto();
-
-                // Ambil snapshot dari webcam
                 var picture = webcam.snap();
                 afterTakePhoto();
 
-                // Tampilkan spinner verifikasi
-                swal({ title: 'Memverifikasi Wajah...', text: 'AI Python sedang memproses...', icon: 'info', button: false });
+                swal({ title: 'Memverifikasi Wajah...', text: 'Mencocokkan dengan data Anda...', icon: 'info', button: false });
 
-                // Kirim ke PHP endpoint yang memanggil Python face-service
                 $.ajax({
                     type: 'POST',
                     url:  './action/face-verify.php',
@@ -211,16 +306,13 @@ if ($mod =='absent'){?>
                     timeout: 30000,
                     success: function(res) {
                         if (!res.match) {
-                            swal({
-                                title: 'Wajah Tidak Cocok!',
-                                text:  res.message + ' (jarak: ' + res.distance + ')',
-                                icon:  'error'
-                            });
+                            swal({ title: 'Wajah Tidak Cocok!', text: res.message + ' (' + res.confidence + '%)', icon: 'error' });
                             removeCapture();
+                            _capturedDone = false;
+                            _detecting    = true;
+                            setTimeout(_runDetect, 1000);
                             return;
                         }
-
-                        // ✅ Verifikasi berhasil — kirim absen
                         swal.close();
                         var dataString = 'img='      + picture +
                                          '&latitude=' + latitude +
@@ -228,7 +320,6 @@ if ($mod =='absent'){?>
                                          '&shift='    + shift +
                                          '&face_verified=1' +
                                          '&face_confidence=' + res.confidence;
-
                         $.ajax({
                             type: 'POST',
                             url:  './sw-proses?action=absent',
@@ -247,10 +338,47 @@ if ($mod =='absent'){?>
                     },
                     error: function(xhr) {
                         var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Gagal memverifikasi wajah';
-                        swal({ title: 'Error Verifikasi!', text: msg, icon: 'error' });
+                        swal({ title: 'Error!', text: msg, icon: 'error' });
                         removeCapture();
                     }
                 });
+            }
+
+            // ─── Mulai deteksi saat kamera ready ─────────────────────────
+            // Patch: tambahkan hook ke cameraStarted()
+            var _origCameraStarted = cameraStarted;
+            cameraStarted = function() {
+                _origCameraStarted();
+                _mountOverlay();
+                _capturedDone = false;
+                _detecting    = true;
+
+                // Tunggu model siap (maks 10 detik)
+                var waited = 0;
+                var pollReady = setInterval(function() {
+                    waited += 300;
+                    if (_faceApiReady) {
+                        clearInterval(pollReady);
+                        _runDetect();
+                    } else if (waited > 10000) {
+                        clearInterval(pollReady);
+                        _setStatus('📷', 'Tap tombol untuk absen (manual)', 'rgba(0,0,0,0.65)');
+                    }
+                }, 300);
+            };
+
+            // ─── Tombol manual (fallback) — tetap ada jika model gagal ───
+            $(".take-photo").click(function () {
+                if (!hasFaceData) {
+                    swal({
+                        title: 'Wajah Belum Terdaftar!',
+                        text:  'Daftarkan wajah Anda terlebih dahulu sebelum absen.',
+                        icon:  'warning',
+                        buttons: { cancel: 'Nanti', confirm: { text: 'Daftar Sekarang', closeModal: true } }
+                    }).then(function(ok){ if(ok) location.href='./wajah'; });
+                    return;
+                }
+                if (!_capturedDone) { _capturedDone = true; _doAutoCapture(); }
             });
 
 
