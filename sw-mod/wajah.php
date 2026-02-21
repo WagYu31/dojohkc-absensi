@@ -109,19 +109,24 @@ echo'
                     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
                     background:rgba(0,0,0,0.6); z-index:10;">
 
-                    <!-- Tombol ambil foto (file input native — bekerja di semua device) -->
-                    <label for="file-camera" class="btn btn-success"
+                    <!-- Tombol live camera -->
+                    <button id="btn-start-cam" type="button" class="btn btn-success"
                         style="padding:14px 32px; border-radius:30px; font-size:16px; font-weight:600;
-                               box-shadow:0 4px 20px rgba(0,0,0,0.4); cursor:pointer; min-width:220px; margin:0;">
-                        <ion-icon name="camera-outline" style="vertical-align:middle;"></ion-icon>
-                        &nbsp;Ambil Foto Wajah
-                    </label>
-                    <input type="file" id="file-camera" accept="image/*" capture="user"
-                        style="display:none;">
+                               box-shadow:0 4px 20px rgba(0,0,0,0.4); min-width:220px;">
+                        <ion-icon name="videocam-outline" style="vertical-align:middle;"></ion-icon>
+                        &nbsp;Buka Kamera Live
+                    </button>
 
-                    <span style="color:rgba(255,255,255,0.6); font-size:12px; text-align:center; max-width:200px;">
-                        Kamera akan terbuka otomatis
-                    </span>
+                    <span style="color:rgba(255,255,255,0.5); font-size:12px;">atau pilih foto dari galeri</span>
+
+                    <!-- Fallback: file input -->
+                    <label for="file-camera" class="btn btn-outline-light btn-sm"
+                        style="border-radius:20px; cursor:pointer; margin:0; font-size:13px;">
+                        <ion-icon name="image-outline" style="vertical-align:middle;"></ion-icon>
+                        &nbsp;Pilih dari Galeri
+                    </label>
+                    <input type="file" id="file-camera" accept="image/*"
+                        style="display:none;">
                 </div>
 
                 <!-- Flash -->
@@ -244,59 +249,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ===================================================
        MODE A: LIVE CAMERA (getUserMedia)
+       FIX: tampilkan video DULU sebelum play() agar
+       browser tidak block karena element hidden
     =================================================== */
     function startLiveCamera() {
         setStatus('Memulai kamera...', '#ffc107');
+        startOverlay.style.display = 'none';  // sembunyikan overlay
+        video.style.display = 'block';        // tampilkan video DULU
+        panelAmbil.style.display = '';        // tampilkan tombol ambil
 
         if (currentStream) {
             currentStream.getTracks().forEach(function(t) { t.stop(); });
             currentStream = null;
         }
 
-        /* Timeout 6 detik — jika getUserMedia tidak respond */
-        var hangTimer = setTimeout(function() {
-            setStatus('Kamera timeout. Gunakan "Ambil Foto Langsung"', '#dc3545');
-            startOverlay.style.display = 'flex';
-            if (currentStream) {
-                currentStream.getTracks().forEach(function(t) { t.stop(); });
-                currentStream = null;
-            }
-        }, 6000);
+        // Constraints minimal — hindari hang dari constraint yang tidak didukung
+        var constraints = { video: { facingMode: facingMode } };
 
-        navigator.mediaDevices.getUserMedia({
-            video: { facingMode: facingMode, width: { ideal: 1280 }, height: { ideal: 720 } }
-        })
+        navigator.mediaDevices.getUserMedia(constraints)
         .then(function(stream) {
-            clearTimeout(hangTimer);
-            currentStream       = stream;
-            video.srcObject     = stream;
-            video.style.display = 'block';
-            startOverlay.style.display = 'none';
+            currentStream   = stream;
+            video.srcObject = stream;
+            video.muted     = true;
+            video.setAttribute('playsinline', '');
             flipBtn.style.display = 'flex';
             liveMode = true;
-
-            video.play().then(function() {
-                setStatus('Kamera Aktif ✓', '#28a745');
-                panelAmbil.style.display = '';
-            }).catch(function(e) {
-                clearTimeout(hangTimer);
-                setStatus('Error: ' + e.name, '#dc3545');
-            });
+            video.play();
+            setStatus('Kamera Aktif ✓', '#28a745');
         })
         .catch(function(err) {
-            clearTimeout(hangTimer);
-            var msg = err.name === 'NotAllowedError'
-                ? 'Izin kamera ditolak'
-                : 'Kamera gagal: ' + err.name;
-            setStatus(msg + '. Gunakan "Ambil Foto Langsung"', '#dc3545');
+            var msg = err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError'
+                ? 'Izin kamera ditolak — cek pengaturan browser.'
+                : 'Kamera tidak bisa dibuka: ' + err.name;
+            setStatus(msg, '#dc3545');
+            // Tampilkan kembali overlay pilihan
+            video.style.display = 'none';
             startOverlay.style.display = 'flex';
         });
     }
 
     /* Tombol Buka Kamera Live */
-    document.getElementById('btn-start-cam').addEventListener('click', function() {
-        startLiveCamera();
-    });
+    document.getElementById('btn-start-cam').addEventListener('click', startLiveCamera);
 
     /* Tombol Flip */
     flipBtn.addEventListener('click', function() {
