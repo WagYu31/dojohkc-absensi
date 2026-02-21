@@ -6,6 +6,7 @@
 
 $base_path = dirname(__DIR__) . '/';
 include_once $base_path . 'sw-library/sw-config.php';
+include_once $base_path . 'sw-library/sw-function.php';
 
 header('Content-Type: application/json');
 
