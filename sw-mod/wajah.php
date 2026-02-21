@@ -33,55 +33,64 @@ echo'
                 <span class="badge badge-danger" style="font-size:14px; padding:8px 16px;">
                     <i class="fa fa-times-circle"></i> &nbsp;Wajah Belum Terdaftar
                 </span>
-                <p class="text-muted mt-2 mb-0" style="font-size:12px;">Foto wajah Anda untuk bisa melakukan absen</p>
-                ').'
-            </div>
+                <p class="text-muted mt-2 mb-0" style="font-size:12px;">Arahkan wajah ke dalam lingkaran, otomatis tersimpan</p>
+                ').
+            '</div>
         </div>
     </div>
 
     <!-- Camera Section -->
     <div class="section mb-2">
         <div class="card" style="overflow:hidden; border-radius:14px;">
-            <!-- Wrapper kamera responsif -->
-            <div id="cam-wrapper" style="position:relative; width:100%; background:#111; min-height:60vw; max-height:420px; overflow:hidden;">
+            <div id="cam-wrapper" style="position:relative; width:100%; background:#111; min-height:65vw; max-height:440px; overflow:hidden;">
 
-                <!-- Video Live (getUserMedia mode) -->
+                <!-- Video Live -->
                 <video id="face-video" autoplay playsinline muted
                     style="width:100%; height:100%; object-fit:cover; display:none; position:absolute;top:0;left:0;">
                 </video>
 
-                <!-- Preview foto (setelah capture) -->
+                <!-- Preview setelah capture -->
                 <canvas id="face-canvas"
                     style="display:none; width:100%; height:100%; object-fit:cover; position:absolute;top:0;left:0;">
                 </canvas>
 
-                <!-- Preview foto dari file input -->
-                <img id="face-preview" alt="Preview"
-                    style="display:none; width:100%; height:100%; object-fit:cover; position:absolute;top:0;left:0;">
-
-                <!-- Overlay guide wajah — responsif via SVG -->
+                <!-- Overlay SVG Guide + Progress Ring -->
                 <svg id="face-guide" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"
                     style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
                     <defs>
                         <mask id="oval-mask">
                             <rect width="100" height="100" fill="white"/>
-                            <ellipse cx="50" cy="48" rx="30" ry="38" fill="black"/>
+                            <ellipse cx="50" cy="47" rx="29" ry="37" fill="black"/>
                         </mask>
                     </defs>
-                    <rect width="100" height="100" fill="rgba(0,0,0,0.35)" mask="url(#oval-mask)"/>
-                    <ellipse cx="50" cy="48" rx="30" ry="38"
-                        fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="0.8"
-                        stroke-dasharray="4 2"/>
-                    <path d="M22 20 L22 28" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M20 22 L28 22" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M78 20 L78 28" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M72 22 L80 22" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M22 80 L22 72" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M20 78 L28 78" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M78 80 L78 72" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <path d="M72 78 L80 78" stroke="#4ade80" stroke-width="1.2" stroke-linecap="round"/>
-                    <text x="50" y="95" text-anchor="middle" fill="rgba(255,255,255,0.75)" font-size="4.5"
-                        font-family="system-ui,sans-serif">Posisikan wajah di sini</text>
+                    <!-- Dark overlay outside oval -->
+                    <rect width="100" height="100" fill="rgba(0,0,0,0.42)" mask="url(#oval-mask)"/>
+                    <!-- Dashed guide ring (white) -->
+                    <ellipse cx="50" cy="47" rx="29" ry="37"
+                        fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="0.7"
+                        stroke-dasharray="3 2"/>
+                    <!-- Progress ring (green, animated) — rotated so fills from top -->
+                    <ellipse id="oval-ring" cx="50" cy="47" rx="29" ry="37"
+                        fill="none" stroke="#4ade80" stroke-width="2.2" stroke-linecap="round"
+                        stroke-dasharray="0 215"
+                        transform="rotate(-90 50 47)"/>
+                    <!-- Corner brackets -->
+                    <path d="M23 18 L23 25" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M20 21 L27 21" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M77 18 L77 25" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M73 21 L80 21" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M23 76 L23 83" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M20 79 L27 79" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M77 76 L77 83" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <path d="M73 79 L80 79" stroke="#4ade80" stroke-width="1.3" stroke-linecap="round"/>
+                    <!-- Countdown number (center of oval) -->
+                    <text id="oval-count" x="50" y="53" text-anchor="middle"
+                        fill="white" font-size="16" font-family="system-ui,sans-serif"
+                        font-weight="700" opacity="0">3</text>
+                    <!-- Hint text bottom -->
+                    <text id="oval-hint" x="50" y="95" text-anchor="middle"
+                        fill="rgba(255,255,255,0.80)" font-size="4.2"
+                        font-family="system-ui,sans-serif">Arahkan wajah ke dalam oval</text>
                 </svg>
 
                 <!-- Status Badge -->
@@ -94,7 +103,7 @@ echo'
                     <span id="cam-text">Siap</span>
                 </div>
 
-                <!-- Tombol Flip (live camera mode) -->
+                <!-- Flip Button -->
                 <button id="flip-camera" type="button" style="
                     display:none; position:absolute; top:10px; right:10px; z-index:5;
                     background:rgba(0,0,0,0.5); color:#fff; border:none;
@@ -103,69 +112,81 @@ echo'
                     <ion-icon name="camera-reverse-outline"></ion-icon>
                 </button>
 
-                <!-- Tombol Ambil Foto — bekerja di SEMUA device & browser tanpa getUserMedia -->
+                <!-- Fallback overlay (jika getUserMedia gagal) -->
                 <label for="file-camera" style="
                     position:absolute;top:0;left:0;width:100%;height:100%;
                     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
                     background:rgba(0,0,0,0.5); z-index:10; cursor:pointer;" id="lbl-camera">
-
                     <span class="btn btn-success" style="
                         padding:16px 36px;border-radius:30px;font-size:17px;font-weight:700;
                         box-shadow:0 6px 24px rgba(0,0,0,0.5);pointer-events:none;min-width:220px;
                         display:flex;align-items:center;justify-content:center;gap:10px;">
                         <ion-icon name="camera-outline" style="font-size:22px;"></ion-icon>
-                        Ambil Foto Wajah
+                        Buka Kamera
                     </span>
                     <span style="color:rgba(255,255,255,0.65);font-size:13px;">Tap untuk membuka kamera</span>
                 </label>
                 <input type="file" id="file-camera" accept="image/*" capture="user" style="display:none;">
 
-                <!-- Flash -->
+                <!-- Flash effect -->
                 <div id="flash-wajah" style="
                     position:absolute;top:0;left:0;width:100%;height:100%;
                     background:#fff;opacity:0;pointer-events:none;z-index:8;
-                    transition:opacity 0.12s;"></div>
+                    transition:opacity 0.15s;"></div>
+
+                <!-- Overlay: sedang menyimpan -->
+                <div id="saving-overlay" style="
+                    display:none; position:absolute;top:0;left:0;width:100%;height:100%;
+                    background:rgba(0,0,0,0.65); z-index:12;
+                    flex-direction:column; align-items:center; justify-content:center; gap:12px; color:#fff;">
+                    <i class="fa fa-spinner fa-spin" style="font-size:32px; color:#4ade80;"></i>
+                    <span style="font-size:16px; font-weight:600;">Menyimpan wajah...</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Action Panel -->
-    <div class="section mb-2">
+    <!-- Error/Retry Panel (tersembunyi, muncul jika gagal) -->
+    <div class="section mb-2" id="retry-section" style="display:none;">
+        <div class="card" style="border-left:4px solid #dc3545;">
+            <div class="card-body text-center py-3">
+                <p class="text-danger mb-3" id="error-msg" style="font-size:14px;">Terjadi kesalahan</p>
+                <button onclick="location.reload()" class="btn btn-outline-secondary btn-sm">
+                    <ion-icon name="refresh-outline"></ion-icon> &nbsp;Coba Lagi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- File input fallback: konfirmasi manual -->
+    <div class="section mb-2" id="panel-file-konfirmasi" style="display:none;">
         <div class="card">
             <div class="card-body">
-                <!-- Panel Ambil Foto (hanya muncul saat live camera aktif) -->
-                <div id="panel-ambil" style="display:none;">
-                    <div class="form-button-group mt-1">
-                        <button type="button" id="btn-ambil" class="btn btn-success btn-block">
-                            <ion-icon name="camera-outline"></ion-icon> &nbsp;Ambil Foto
+                <p class="text-center text-success mb-2" style="font-size:13px;font-weight:600;">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon> Foto siap. Simpan?
+                </p>
+                <div class="row" style="margin:0;">
+                    <div class="col-6 pr-1">
+                        <button type="button" onclick="location.reload()" class="btn btn-outline-secondary btn-block">
+                            <ion-icon name="refresh-outline"></ion-icon> Ulang
+                        </button>
+                    </div>
+                    <div class="col-6 pl-1">
+                        <button type="button" id="btn-simpan-file" class="btn btn-success btn-block">
+                            <ion-icon name="checkmark-outline"></ion-icon> Simpan
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Panel Konfirmasi (setelah foto diambil) -->
-                <div id="panel-konfirmasi" style="display:none;">
-                    <p class="text-center text-success mb-2" style="font-size:13px;font-weight:600;">
-                        <ion-icon name="checkmark-circle-outline"></ion-icon> Foto siap. Simpan atau ulangi.
-                    </p>
-                    <div class="row" style="margin:0;">
-                        <div class="col-6 pr-1">
-                            <button type="button" id="btn-ulang" class="btn btn-outline-secondary btn-block">
-                                <ion-icon name="refresh-outline"></ion-icon> Ulang
-                            </button>
-                        </div>
-                        <div class="col-6 pl-1">
-                            <button type="button" id="btn-simpan" class="btn btn-success btn-block">
-                                <ion-icon name="checkmark-outline"></ion-icon> Simpan
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-2 text-center">
-                    <a href="./" class="text-muted" style="font-size:12px;">
-                        <ion-icon name="arrow-back-outline"></ion-icon> Kembali ke Beranda
-                    </a>
-                </div>
+    <div class="section mb-2">
+        <div class="card">
+            <div class="card-body py-2 text-center">
+                <a href="./" class="text-muted" style="font-size:12px;">
+                    <ion-icon name="arrow-back-outline"></ion-icon> Kembali ke Beranda
+                </a>
             </div>
         </div>
     </div>
@@ -196,24 +217,36 @@ window.addEventListener('load', function () {
 });
 
 function initWajah() {
-    var photoData       = null;
-    var stream          = null;
-    var currentFacing   = 'user';
+    var photoData     = null;
+    var stream        = null;
+    var currentFacing = 'user';
+    var RING_CIRC     = 215;   // SVG ellipse approximate circumference
+    var progress      = 0;     // 0-100 fill progress
+    var scanTimer     = null;
+    var fillRate      = 100 / 30; // fill 100% in 30 ticks × 100ms = 3 seconds
+    var drainRate     = fillRate * 2.5; // drain faster when face leaves
 
-    var videoEl         = document.getElementById('face-video');
-    var canvasEl        = document.getElementById('face-canvas');
-    var previewEl       = document.getElementById('face-preview');
-    var faceGuide       = document.getElementById('face-guide');
-    var lblCamera       = document.getElementById('lbl-camera');
-    var flipBtn         = document.getElementById('flip-camera');
-    var camDot          = document.getElementById('cam-dot');
-    var camText         = document.getElementById('cam-text');
-    var panelAmbil      = document.getElementById('panel-ambil');
-    var panelKonfirmasi = document.getElementById('panel-konfirmasi');
+    var videoEl      = document.getElementById('face-video');
+    var canvasEl     = document.getElementById('face-canvas');
+    var faceGuide    = document.getElementById('face-guide');
+    var lblCamera    = document.getElementById('lbl-camera');
+    var flipBtn      = document.getElementById('flip-camera');
+    var camDot       = document.getElementById('cam-dot');
+    var camText      = document.getElementById('cam-text');
+    var ovalRing     = document.getElementById('oval-ring');
+    var ovalCount    = document.getElementById('oval-count');
+    var ovalHint     = document.getElementById('oval-hint');
+    var savingOverlay= document.getElementById('saving-overlay');
+    var retrySection = document.getElementById('retry-section');
+    var errorMsg     = document.getElementById('error-msg');
 
-    /* Elemen wajib — kalau hilang, tolak inisialisasi */
-    if (!videoEl || !camText || !panelAmbil) {
-        console.error('[wajah] Elemen DOM tidak lengkap');
+    /* Reusable tiny canvas for pixel sampling */
+    var sampleCvs = document.createElement('canvas');
+    sampleCvs.width = 48; sampleCvs.height = 56;
+    var sampleCtx = sampleCvs.getContext('2d');
+
+    if (!videoEl || !camText) {
+        console.error('[wajah] Missing DOM elements');
         return;
     }
 
@@ -222,60 +255,119 @@ function initWajah() {
         camDot.style.background = color || '#6c757d';
     }
 
-    /* ─── Mulai kamera live via getUserMedia ─── */
+    /* ─── Check if face is roughly in the oval (pixel brightness heuristic) ─── */
+    function faceInOval() {
+        if (!videoEl.videoWidth) return false;
+        var vw = videoEl.videoWidth, vh = videoEl.videoHeight;
+        /* Sample the center oval region */
+        sampleCtx.drawImage(videoEl, vw*0.22, vh*0.08, vw*0.56, vh*0.76, 0, 0, 48, 56);
+        var data = sampleCtx.getImageData(0, 0, 48, 56).data;
+        var sum = 0, count = 0;
+        for (var i = 0; i < data.length; i += 4) {
+            sum += (data[i] + data[i+1] + data[i+2]) / 3;
+            count++;
+        }
+        var avg = sum / count;
+        /* Face-like brightness: not too dark (< 55), not blown out (> 240) */
+        return avg > 55 && avg < 240;
+    }
+
+    /* ─── Update SVG progress ring ─── */
+    function updateRing(pct) {
+        var filled = (pct / 100) * RING_CIRC;
+        ovalRing.setAttribute('stroke-dasharray', filled.toFixed(1) + ' ' + RING_CIRC);
+        /* Color: yellow < 50%, green >= 50% */
+        ovalRing.setAttribute('stroke', pct < 50 ? '#facc15' : '#4ade80');
+
+        /* Countdown number */
+        if (pct > 10) {
+            var secsLeft = Math.ceil((100 - pct) / fillRate / 10);
+            ovalCount.textContent = secsLeft > 0 ? secsLeft : '📸';
+            ovalCount.setAttribute('opacity', '0.9');
+        } else {
+            ovalCount.setAttribute('opacity', '0');
+        }
+    }
+
+    /* ─── Scanning loop ─── */
+    function startScan() {
+        if (scanTimer) clearInterval(scanTimer);
+        progress = 0;
+        updateRing(0);
+        setStatus('Posisikan wajah di oval', '#ffc107');
+
+        scanTimer = setInterval(function() {
+            if (!stream) { clearInterval(scanTimer); return; }
+
+            if (faceInOval()) {
+                progress = Math.min(100, progress + fillRate);
+                if (progress < 100) {
+                    var secsLeft = Math.ceil((100 - progress) / fillRate / 10);
+                    setStatus('Tahan... ' + secsLeft + 's', '#4ade80');
+                }
+            } else {
+                progress = Math.max(0, progress - drainRate);
+                if (progress <= 5) setStatus('Posisikan wajah di oval', '#ffc107');
+            }
+
+            updateRing(progress);
+
+            if (progress >= 100) {
+                clearInterval(scanTimer);
+                doAutoCapture();
+            }
+        }, 100);
+    }
+
+    /* ─── Start live camera ─── */
     function startCamera(facing) {
         if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
         currentFacing = facing || 'user';
         setStatus('Memuat kamera...', '#ffc107');
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showFileFallback(); return;
+            showFallback(); return;
         }
 
         navigator.mediaDevices.getUserMedia({
-            video: { facingMode: currentFacing, width: { ideal: 640 }, height: { ideal: 480 } },
+            video: { facingMode: currentFacing, width:{ideal:640}, height:{ideal:480} },
             audio: false
         })
         .then(function(s) {
             stream = s;
             videoEl.srcObject = s;
             videoEl.style.display   = 'block';
-            lblCamera.style.display  = 'none';
-            flipBtn.style.display    = 'flex';
-            canvasEl.style.display   = 'none';
-            previewEl.style.display  = 'none';
-            panelAmbil.style.display      = '';
-            panelKonfirmasi.style.display = 'none';
+            lblCamera.style.display = 'none';
+            flipBtn.style.display   = 'flex';
+            canvasEl.style.display  = 'none';
             setStatus('Kamera aktif', '#28a745');
+            /* Warmup 1.2s then start scanning */
+            setTimeout(startScan, 1200);
         })
         .catch(function(err) {
-            console.warn('[wajah] getUserMedia gagal:', err.name, err.message);
-            showFileFallback();
+            console.warn('[wajah] getUserMedia:', err.name);
+            showFallback();
         });
     }
 
     /* ─── Fallback: file input ─── */
-    function showFileFallback() {
-        if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; }
+    function showFallback() {
+        if (stream) { stream.getTracks().forEach(function(t){ t.stop(); }); stream=null; }
         videoEl.style.display   = 'none';
         flipBtn.style.display   = 'none';
         lblCamera.style.display = 'flex';
-        panelAmbil.style.display      = 'none';
-        panelKonfirmasi.style.display = 'none';
-        setStatus('Tap untuk ambil foto', '#6c757d');
+        setStatus('Tap untuk foto', '#6c757d');
     }
 
-    /* ─── AUTO START ─── */
-    startCamera('user');
+    /* ─── Auto capture from live video ─── */
+    function doAutoCapture() {
+        setStatus('📸 Mengambil foto...', '#28a745');
 
-    /* ─── Flip ─── */
-    flipBtn.addEventListener('click', function() {
-        startCamera(currentFacing === 'user' ? 'environment' : 'user');
-    });
+        /* Flash */
+        var flash = document.getElementById('flash-wajah');
+        if (flash) { flash.style.opacity='1'; setTimeout(function(){ flash.style.opacity='0'; }, 200); }
 
-    /* ─── AMBIL FOTO ─── */
-    document.getElementById('btn-ambil').addEventListener('click', function() {
-        if (!stream || !videoEl.videoWidth) { setStatus('Kamera belum siap', '#dc3545'); return; }
+        /* Capture */
         var MAX = 480, vw = videoEl.videoWidth, vh = videoEl.videoHeight;
         var ratio = Math.min(MAX/vw, MAX/vh);
         canvasEl.width  = Math.round(vw * ratio);
@@ -283,39 +375,78 @@ function initWajah() {
         canvasEl.getContext('2d').drawImage(videoEl, 0, 0, canvasEl.width, canvasEl.height);
         photoData = canvasEl.toDataURL('image/jpeg', 0.82);
 
-        var flash = document.getElementById('flash-wajah');
-        if (flash) { flash.style.opacity='1'; setTimeout(function(){ flash.style.opacity='0'; }, 150); }
-
+        /* Stop stream, show preview */
         stream.getTracks().forEach(function(t){ t.stop(); }); stream = null;
         videoEl.style.display  = 'none';
         canvasEl.style.display = 'block';
         flipBtn.style.display  = 'none';
-        panelAmbil.style.display      = 'none';
-        panelKonfirmasi.style.display = '';
-        setStatus('Foto siap ✓', '#28a745');
+
+        /* Reset ring to full green */
+        ovalRing.setAttribute('stroke-dasharray', RING_CIRC + ' 0');
+        ovalRing.setAttribute('stroke', '#4ade80');
+        ovalCount.setAttribute('opacity', '0');
+        ovalHint.textContent = 'Menyimpan...';
+
+        /* Auto save after 600ms */
+        setTimeout(doAutoSave, 600);
+    }
+
+    /* ─── Auto save to server ─── */
+    function doAutoSave() {
+        if (!photoData) return;
+        savingOverlay.style.display = 'flex';
+        setStatus('Menyimpan...', '#1a73e8');
+
+        $.ajax({
+            type: 'POST', url: './action/face-save.php',
+            data: { face_photo: photoData }, dataType: 'json',
+            success: function(res) {
+                savingOverlay.style.display = 'none';
+                if (res.status === 'success') {
+                    setStatus('✓ Tersimpan!', '#28a745');
+                    ovalHint.textContent = 'Wajah berhasil didaftarkan!';
+                    swal({ title:'Berhasil!', text:res.message, icon:'success', timer:2200 })
+                        .then(function(){ location.reload(); });
+                } else {
+                    setStatus('✗ Gagal', '#dc3545');
+                    errorMsg.textContent = res.message || 'Gagal menyimpan. Coba lagi.';
+                    retrySection.style.display = '';
+                }
+            },
+            error: function() {
+                savingOverlay.style.display = 'none';
+                setStatus('✗ Error jaringan', '#dc3545');
+                errorMsg.textContent = 'Koneksi gagal. Pastikan internet aktif.';
+                retrySection.style.display = '';
+            }
+        });
+    }
+
+    /* ─── Flip camera ─── */
+    flipBtn.addEventListener('click', function() {
+        if (scanTimer) { clearInterval(scanTimer); scanTimer = null; }
+        startCamera(currentFacing === 'user' ? 'environment' : 'user');
     });
 
-    /* ─── FILE INPUT fallback ─── */
+    /* ─── File input fallback handler ─── */
     document.getElementById('file-camera').addEventListener('change', function(e) {
         var file = e.target.files && e.target.files[0];
         if (!file) return;
-        setStatus('Memproses...', '#ffc107');
+        setStatus('Memproses foto...', '#ffc107');
         var img = new Image(), reader = new FileReader();
         reader.onload = function(ev) {
             img.onload = function() {
                 var MAX=480, w=img.width, h=img.height;
-                if (w>MAX||h>MAX) { var r=Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
+                if (w>MAX||h>MAX){ var r=Math.min(MAX/w,MAX/h); w=Math.round(w*r); h=Math.round(h*r); }
                 var cvs=document.createElement('canvas'); cvs.width=w; cvs.height=h;
                 cvs.getContext('2d').drawImage(img,0,0,w,h);
                 photoData = cvs.toDataURL('image/jpeg', 0.82);
-                previewEl.src = photoData;
-                previewEl.style.display  = 'block';
-                videoEl.style.display    = 'none';
-                canvasEl.style.display   = 'none';
-                lblCamera.style.display  = 'none';
-                panelAmbil.style.display      = 'none';
-                panelKonfirmasi.style.display = '';
-                setStatus('Foto siap ✓', '#28a745');
+                canvasEl.width=w; canvasEl.height=h;
+                canvasEl.getContext('2d').drawImage(img,0,0,w,h);
+                lblCamera.style.display = 'none';
+                canvasEl.style.display  = 'block';
+                document.getElementById('panel-file-konfirmasi').style.display = '';
+                setStatus('Foto siap', '#28a745');
             };
             img.src = ev.target.result;
         };
@@ -323,44 +454,20 @@ function initWajah() {
         this.value = '';
     });
 
-    /* ─── ULANG ─── */
-    document.getElementById('btn-ulang').addEventListener('click', function() {
-        photoData = null;
-        previewEl.style.display = 'none';
-        canvasEl.style.display  = 'none';
-        startCamera(currentFacing);
-    });
-
-    /* ─── SIMPAN ─── */
-    document.getElementById('btn-simpan').addEventListener('click', function() {
-        if (!photoData) return;
-        var btn = this;
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
-
-        $.ajax({
-            type: 'POST', url: './action/face-save.php',
-            data: { face_photo: photoData }, dataType: 'json',
-            success: function(res) {
-                if (res.status === 'success') {
-                    swal({ title: 'Berhasil!', text: res.message, icon: 'success', timer: 2500 })
-                        .then(function(){ location.reload(); });
-                } else {
-                    swal({ title: 'Gagal!', text: res.message, icon: 'error' });
-                    btn.disabled = false;
-                    btn.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon> Simpan';
-                }
-            },
-            error: function() {
-                swal({ title: 'Error!', text: 'Koneksi gagal. Coba lagi.', icon: 'error' });
-                btn.disabled = false;
-                btn.innerHTML = '<ion-icon name="checkmark-outline"></ion-icon> Simpan';
-            }
+    /* ─── Manual save button (file input fallback) ─── */
+    var btnSimpanFile = document.getElementById('btn-simpan-file');
+    if (btnSimpanFile) {
+        btnSimpanFile.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+            doAutoSave();
         });
-    });
+    }
+
+    /* ─── AUTO START ─── */
+    startCamera('user');
 }
 </script>
-
 <?php
 }
 include_once 'sw-mod/sw-footer.php';
