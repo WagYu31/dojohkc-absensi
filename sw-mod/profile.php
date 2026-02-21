@@ -147,6 +147,42 @@ if(!isset($_COOKIE['COOKIES_MEMBER'])){
         
     </div>
     <!-- * App Capsule -->
+
+    <!-- === FACE VERIFICATION STATUS === -->
+    <div class="section mt-2 mb-5">
+        <div class="section-title">
+            <ion-icon name="scan-outline"></ion-icon> Verifikasi Wajah
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <p class="mb-0" style="font-size:13px;"><strong>Status Wajah:</strong></p>';
+                        if(!empty($row_user['face_descriptor'])){
+                            echo'
+                        <span class="badge badge-success mt-1" style="font-size:12px;">
+                            <ion-icon name="checkmark-circle-outline"></ion-icon> Sudah Terdaftar
+                        </span>';
+                        }else{
+                            echo'
+                        <span class="badge badge-danger mt-1" style="font-size:12px;">
+                            <ion-icon name="close-circle-outline"></ion-icon> Belum Terdaftar
+                        </span>';
+                        }
+                        echo'
+                        <p class="text-muted mt-1 mb-0" style="font-size:11px;">Wajah digunakan untuk verifikasi saat absen</p>
+                    </div>
+                    <div>
+                        <a href="./wajah" class="btn btn-'.(!empty($row_user['face_descriptor']) ? 'outline-success' : 'danger').' btn-sm">
+                            <ion-icon name="scan-outline"></ion-icon>
+                            '.(!empty($row_user['face_descriptor']) ? 'Perbarui' : 'Daftar').'
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- === END FACE === -->
 ';
 
   }

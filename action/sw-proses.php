@@ -263,6 +263,28 @@ if (filter_var($employees_email, FILTER_VALIDATE_EMAIL)) {
 case 'absent':
 $error = array();
 
+/* === CEK FACE VERIFIED === */
+// face_verified dikirim dari JavaScript face-api.js setelah verifikasi berhasil
+if (empty($_POST['face_verified']) || $_POST['face_verified'] !== '1') {
+    echo 'Verifikasi wajah gagal! Pastikan wajah Anda terdeteksi dan cocok dengan data terdaftar.';
+    break;
+}
+
+/* === CEK FACE DESCRIPTOR TERDAFTAR === */
+// Pastikan user sudah mendaftarkan wajah di database
+$check_face_q = "SELECT face_descriptor FROM employees WHERE id='{$row_user['id']}' LIMIT 1";
+$check_face_r = $connection->query($check_face_q);
+if ($check_face_r && $check_face_r->num_rows > 0) {
+    $check_face_row = $check_face_r->fetch_assoc();
+    if (empty($check_face_row['face_descriptor'])) {
+        echo 'Wajah Anda belum terdaftar! Silakan daftarkan wajah Anda terlebih dahulu di menu Daftar Wajah.';
+        break;
+    }
+} else {
+    echo 'Data pengguna tidak ditemukan!';
+    break;
+}
+
 if (empty($_POST['shift'])) {
   $error[] = 'Silahkan Pilih Jam Latihan!';
 } else {

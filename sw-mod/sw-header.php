@@ -95,6 +95,46 @@ if(isset($_COOKIE['COOKIES_MEMBER'])){
             </div>
     </div>
 <?php
+// === BANNER PERINGATAN WAJAH BELUM TERDAFTAR ===
+if(isset($_COOKIE['COOKIES_MEMBER']) && $mod != 'wajah' && $mod != 'absent' && $mod != 'login' && $mod != 'registrasi'){
+    if(empty($row_user['face_descriptor'])){
+        echo'
+        <div class="alert" style="
+            background: linear-gradient(135deg, #ff6b35, #f7c948);
+            color: #fff;
+            margin: 0;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            border-radius: 0;
+            position: fixed;
+            top: 56px;
+            left: 0;
+            right: 0;
+            z-index: 999;">
+            <ion-icon name="warning-outline" style="font-size:20px; flex-shrink:0;"></ion-icon>
+            <div style="flex:1;">
+                <strong>Wajah belum terdaftar!</strong><br>
+                <span style="font-size:12px;">Daftarkan wajah Anda agar bisa melakukan absen.</span>
+            </div>
+            <a href="./wajah" style="
+                background:#fff;
+                color:#e65c00;
+                padding: 5px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+                text-decoration: none;">
+                Daftar Sekarang
+            </a>
+        </div>
+        <div style="height: 44px;"></div>';
+    }
+}
+
 echo'<!-- App Sidebar -->
     <div class="modal fade panelbox panelbox-left" id="sidebarPanel" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
@@ -173,6 +213,15 @@ echo'<!-- App Sidebar -->
                                     <ion-icon name="person-outline"></ion-icon>
                                 </div>
                                     Profil
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="./wajah" class="item">
+                                <div class="icon-box bg-primary">
+                                    <ion-icon name="scan-outline"></ion-icon>
+                                </div>
+                                    Daftar Wajah
                             </a>
                         </li>
 
