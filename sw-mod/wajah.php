@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setStatus('Memulai kamera...', '#ffc107');
         startOverlay.style.display = 'none';
 
-        webcam.start()
+        webcam.stream()
         .then(function(result) {
             videoEl.style.display = 'block';
             flipBtn.style.display = 'flex';
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /* Tombol Flip */
     flipBtn.addEventListener('click', function() {
         webcam.flip();
-        webcam.start();
+        webcam.stream();
     });
 
     /* ===== AMBIL FOTO (live) ===== */
